@@ -48,3 +48,28 @@ add_action('personal_options', function ($user) {
 
   <?php
 });
+
+$fn = function ($user_id) {
+  if (!current_user_can('manage_sites')) {
+    return;
+  }
+
+  if (isset($_POST['2fa_enabled'])) {
+    $value = 'default';
+
+    switch ($_POST['2fa_enabled']) {
+      case 'yes':
+      $value = 'yes';
+      break;
+      case 'no':
+      $value = 'no';
+      break;
+    }
+
+    update_user_meta($user_id, '2fa_enabled', $value);
+  }
+};
+
+// Called after nonce checks
+add_action('personal_options_update', $fn);
+add_action('edit_user_profile_update', $fn);
