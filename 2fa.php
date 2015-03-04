@@ -7,3 +7,4 @@ Author URI: http://dxw.com
 */
 
 require(__DIR__."/lib/network-sites.php");
+require(__DIR__."/lib/user-profile.php");
