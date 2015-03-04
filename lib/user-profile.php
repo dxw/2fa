@@ -20,6 +20,8 @@ add_action('personal_options', function ($user) {
     $default = true;
     break;
   }
+
+  $disabled = !current_user_can('manage_sites');
   ?>
 
   <tr class="user-2fa-enabled">
@@ -28,15 +30,15 @@ add_action('personal_options', function ($user) {
       <fieldset>
         <legend class="screen-reader-text"><span>2FA</span></legend>
         <label for="2fa_enabled_yes">
-          <input name="2fa_enabled" type="radio" id="2fa_enabled_yes" value="yes" <?php echo $yes ? 'checked' : '' ?>>
+          <input name="2fa_enabled" type="radio" id="2fa_enabled_yes" value="yes" <?php echo $yes ? 'checked' : '' ?> <?php echo $disabled ? 'disabled' : '' ?>>
           Enabled (this user must use 2FA even if they belong to no sites which require 2FA)
         </label>
         <label for="2fa_enabled_default">
-          <input name="2fa_enabled" type="radio" id="2fa_enabled_default" value="default" <?php echo $default ? 'checked' : '' ?>>
+          <input name="2fa_enabled" type="radio" id="2fa_enabled_default" value="default" <?php echo $default ? 'checked' : '' ?> <?php echo $disabled ? 'disabled' : '' ?>>
           Default (if the user is a member of a site which requires 2FA they will use it, if they don't they won't)
         </label>
         <label for="2fa_enabled_no">
-          <input name="2fa_enabled" type="radio" id="2fa_enabled_no" value="no" <?php echo $no ? 'checked' : '' ?>>
+          <input name="2fa_enabled" type="radio" id="2fa_enabled_no" value="no" <?php echo $no ? 'checked' : '' ?> <?php echo $disabled ? 'disabled' : '' ?>>
           Disabled (this user will not use 2FA even if they belong to a site which requires it)
         </label>
         <br>
