@@ -56,8 +56,17 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <!-- STEP 2 -->
 
       <div ng-switch-when="2">
-        <p>Current step: {{step}}/3</p>
-        <p>TODO (2)</p>
+        <div ng-switch on="$parent.mode">
+          <div ng-switch-when="totp">
+            <p>Current step: {{step}}/3</p>
+            <p>TODO (2)</p>
+            <p><button ng-click="$parent.step = 3" ng-disabled="true">Next</button></p>
+          </div>
+          <div ng-switch-when="sms">
+            <p>Current step: {{step}}/3</p>
+            <p>TODO: SMS activation not implemented yet</p>
+          </div>
+        </div>
       </div>
 
       <!-- STEP 3 -->
