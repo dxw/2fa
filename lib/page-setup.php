@@ -10,7 +10,29 @@ if (!twofa_user_enabled(get_current_user_id())) {
   <?php
 } else {
   ?>
-  <p>TODO: display the form</p>
+  <div ng-app="2fa" ng-controller="Setup" ng-init="step=0">
+    <div ng-switch on="step">
+      <div ng-switch-default>
+        <p>TODO: some explanation about what's about to happen goes here.</p>
+        <p><button ng-click="$parent.step = 1">Start setup</button></p>
+      </div>
+
+      <div ng-switch-when="1">
+        <p>Current step: {{step}}/3</p>
+        <p>TODO (1)</p>
+      </div>
+
+      <div ng-switch-when="2">
+        <p>Current step: {{step}}/3</p>
+        <p>TODO (2)</p>
+      </div>
+
+      <div ng-switch-when="3">
+        <p>Current step: {{step}}/3</p>
+        <p>TODO (3)</p>
+      </div>
+    </div>
+  </div>
   <?php
 }
 
