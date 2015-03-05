@@ -9,7 +9,7 @@ add_filter('wpmu_blogs_columns', function ($columns) {
 
 add_action('manage_sites_custom_column', function ($column_name, $blawg_id) {
   if ($column_name === '2fa') {
-    $enabled = get_blog_option($blawg_id, '2fa_enabled') === 'yes';
+    $enabled === twofa_blog_enabled($blawg_id);
 
     echo $enabled ? 'Enabled' : 'Disabled';
   }
