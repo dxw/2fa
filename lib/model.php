@@ -36,7 +36,7 @@ function twofa_user_enabled($user_id) {
 
 function twofa_user_activated($user_id) {
   if (!twofa_user_enabled($user_id)) {
-    return false;
+    return 0;
   }
 
   trigger_error('TODO', E_USER_ERROR);
