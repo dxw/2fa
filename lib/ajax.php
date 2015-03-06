@@ -44,7 +44,16 @@ add_action('wp_ajax_2fa_verify', function () {
   $otp = new \Otp\Otp();
   $valid = $otp->checkTotp(hex2bin($secret), $_POST['token']);
 
-  update_user_meta(get_current_user_id(), '2fa_permanent_secret-'.$id, $secret);
+  $devices = get_user_meta(get_current_user_id(), '2fa_devices', true);
+  if (!is_array($devices)) {
+    $devices = [];
+  }
+  $devices[$id-1] = [
+    'mode' => 'totp',
+    'secret' => $secret,
+  ];
+
+  update_user_meta(get_current_user_id(), '2fa_devices', $devices);
   delete_user_meta(get_current_user_id(), '2fa_temporary_secret');
 
   echo json_encode([
