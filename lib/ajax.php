@@ -59,3 +59,17 @@ add_action('wp_ajax_2fa_verify', function () {
   ]);
   exit(0);
 });
+
+add_action('wp_ajax_2fa_qr', function () {
+  $secret = get_user_meta(get_current_user_id(), '2fa_temporary_secret', true);
+
+  header('Content-Type: image/png');
+
+  $qrCode = new \Endroid\QrCode\QrCode();
+  $qrCode
+  ->setText('otpauth://totp/'.rawurlencode(get_bloginfo('name')).'?secret='.$secret)
+  ->setSize(300)
+  ->setPadding(30)
+  ->setErrorCorrection('high')
+  ->render();
+});
