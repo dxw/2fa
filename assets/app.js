@@ -49,12 +49,13 @@
                     action: '2fa_verify',
                     nonce: document.getElementById('2fa_verify').value,
                     token: token,
-                    device_id: document.getElementById('2fa_device_id').value,
                 },
             })
                         .success(function (data) {
                             if (data.valid) {
                                 $scope.verification = 'valid'
+                            } else if (data.error) {
+                                alert('unexpected error4. TODO')
                             } else {
                                 $scope.verification = 'invalid'
                             }

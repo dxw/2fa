@@ -9,20 +9,12 @@ if (!twofa_user_enabled(get_current_user_id())) {
   <p>You already have the maximum number of devices activated. Please deactivate one before setting up a new device.</p>
   <?php
 } else {
-  $id = 1;
-  if (isset($_POST['id'])) {
-    $id = absint($_POST['id']);
-  }
-  if ($id > TWOFA_MAX_DEVICES || $id < 1) {
-    $id = 1;
-  }
 
   ?>
   <div ng-app="2fa" ng-controller="Setup">
 
     <!-- data -->
 
-    <input type="hidden" id="2fa_device_id" value="<?php echo esc_attr($id) ?>">
     <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
     <input type="hidden" id="2fa_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_verify')) ?>">
 
