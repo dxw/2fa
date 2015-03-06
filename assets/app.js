@@ -49,6 +49,7 @@
                     action: '2fa_verify',
                     nonce: document.getElementById('2fa_verify').value,
                     token: token,
+                    device_id: document.getElementById('2fa_device_id').value,
                 },
             })
                         .success(function (data) {

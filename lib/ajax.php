@@ -22,7 +22,15 @@ add_action('wp_ajax_2fa_generate_secret', function () {
 });
 
 add_action('wp_ajax_2fa_verify', function () {
-  if (!isset($_POST['nonce']) || !isset($_POST['token']) || !wp_verify_nonce($_POST['nonce'], '2fa_verify')) {
+  if (!isset($_POST['nonce']) || !isset($_POST['token']) || !isset($_POST['device_id']) || !wp_verify_nonce($_POST['nonce'], '2fa_verify')) {
+    echo json_encode([
+      'error' => true,
+    ]);
+    exit(0);
+  }
+
+  $id = absint($_POST['device_id']);
+  if ($id > TWOFA_MAX_DEVICES || $id < 1) {
     echo json_encode([
       'error' => true,
     ]);
@@ -32,11 +40,14 @@ add_action('wp_ajax_2fa_verify', function () {
   // Get shared secret
   $secret = get_user_meta(get_current_user_id(), '2fa_temporary_secret', true);
 
-  $otp = new \Otp\Otp();
-
   // Verify it
+  $otp = new \Otp\Otp();
+  $valid = $otp->checkTotp(hex2bin($secret), $_POST['token']);
+
+  update_user_meta(get_current_user_id(), '2fa_permanent_secret-'.$id, $secret);
+
   echo json_encode([
-    'valid' => $otp->checkTotp(hex2bin($secret), $_POST['token']),
+    'valid' => $valid,
   ]);
   exit(0);
 });
