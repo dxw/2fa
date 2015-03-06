@@ -10,11 +10,12 @@ if (!twofa_user_enabled(get_current_user_id())) {
   <?php
 } else {
   ?>
-  <div ng-app="2fa" ng-controller="Setup" ng-init="step = 0">
+  <div ng-app="2fa" ng-controller="Setup">
 
     <!-- data -->
 
     <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
+    <input type="hidden" id="2fa_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_verify')) ?>">
 
     <!-- explanation and stuff -->
 
@@ -85,8 +86,36 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <!-- STEP 3 -->
 
       <div ng-switch-when="3">
-        <p>Current step: {{step}}/3</p>
-        <p>TODO (3)</p>
+        <div ng-switch on="$parent.mode">
+          <div ng-switch-when="totp">
+            <p>Current step: {{step}}/3</p>
+
+            <label>
+              Please enter the code that appears in the app:
+              <input type="text" ng-model="token">
+            </label>
+            <button ng-click="$parent.verify(token)" ng-disabled="token.length !== 6 || $parent.verification === 'verifying'">Verify</button>
+
+            <div ng-switch on="$parent.verification">
+              <div ng-switch-when="verifying">
+                <p>Verifying...</p>
+              </div>
+              <div ng-switch-when="invalid">
+                <p>Invalid! TODO: explain what to do here</p>
+              </div>
+              <div ng-switch-when="valid">
+                <p>Valid!</p>
+              </div>
+            </div>
+
+            <p><button ng-click="$parent.finish()" ng-disabled="$parent.verification !== 'valid'">Finish</button></p>
+
+          </div>
+          <div ng-switch-when="sms">
+            <p>Current step: {{step}}/3</p>
+            <p>TODO: SMS activation not implemented yet</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

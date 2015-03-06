@@ -1,7 +1,7 @@
 <?php
 
 add_action('wp_ajax_2fa_generate_secret', function () {
-  if (!wp_verify_nonce($_POST['nonce'], '2fa_generate_secret')) {
+  if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], '2fa_generate_secret')) {
     echo json_encode([
       'error' => true,
     ]);
@@ -17,6 +17,26 @@ add_action('wp_ajax_2fa_generate_secret', function () {
   // Output it
   echo json_encode([
     'secret' => $secret,
+  ]);
+  exit(0);
+});
+
+add_action('wp_ajax_2fa_verify', function () {
+  if (!isset($_POST['nonce']) || !isset($_POST['token']) || !wp_verify_nonce($_POST['nonce'], '2fa_verify')) {
+    echo json_encode([
+      'error' => true,
+    ]);
+    exit(0);
+  }
+
+  // Get shared secret
+  $secret = get_user_meta(get_current_user_id(), '2fa_temporary_secret', true);
+
+  $otp = new \Otp\Otp();
+
+  // Verify it
+  echo json_encode([
+    'valid' => $otp->checkTotp(hex2bin($secret), $_POST['token']),
   ]);
   exit(0);
 });

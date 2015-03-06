@@ -36,5 +36,37 @@
                             })
             }
         })
+
+        $scope.verify = function (token) {
+            $scope.verification = 'verifying'
+
+            $http({
+                method: 'POST',
+                url: window.ajaxurl,
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                transformRequest: urlencoded,
+                data: {
+                    action: '2fa_verify',
+                    nonce: document.getElementById('2fa_verify').value,
+                    token: token,
+                },
+            })
+                        .success(function (data) {
+                            if (data.valid) {
+                                $scope.verification = 'valid'
+                            } else {
+                                $scope.verification = 'invalid'
+                            }
+                        })
+                        .error(function (data) {
+                            alert('unexpected error3. TODO')
+                            $scope.verification = 'invalid'
+                        })
+        }
+
+        $scope.finish = function () {
+            alert('TOOD: finished')
+        }
+
     })
 })()
