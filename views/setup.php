@@ -72,7 +72,10 @@ if (!twofa_user_enabled(get_current_user_id())) {
             <div ng-show="$parent.totp_secret">
               <p>TODO: show a QR code</p>
               <p><a ng-click="text = 1">Can't scan it? Show the text instead</a></p>
-              <p ng-show="text">{{$parent.totp_secret}}</p>
+              <div ng-show="text">
+                <p>Set up a new account using this key and selecting the "time based" option:</p>
+                <p>{{$parent.totp_secret}}</p>
+              </div>
               <p><label><input type="checkbox" value="1" ng-model="scanned"> I've scanned this code into my device</label</p>
               <p><button ng-click="$parent.$parent.step = 3" ng-disabled="!scanned">Next</button></p>
               <p><button ng-click="$parent.$parent.step = 1">Go back</button></p>
