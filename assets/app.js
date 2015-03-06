@@ -66,7 +66,7 @@
         }
 
         $scope.finish = function () {
-            alert('TOOD: finished')
+            alert('TODO: finished')
         }
 
     })
