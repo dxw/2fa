@@ -83,11 +83,13 @@ if (!twofa_user_enabled(get_current_user_id())) {
               <p ng-show="text">{{$parent.totp_secret}}</p>
               <p><label><input type="checkbox" value="1" ng-model="scanned"> I've scanned this code into my device</label</p>
               <p><button ng-click="$parent.$parent.step = 3" ng-disabled="!scanned">Next</button></p>
+              <p><button ng-click="$parent.$parent.step = 1">Go back</button></p>
             </div>
           </div>
           <div ng-switch-when="sms">
             <p>Current step: {{step}}/3</p>
             <p>TODO: SMS activation not implemented yet</p>
+            <p><button ng-click="$parent.$parent.step = 1">Go back</button></p>
           </div>
         </div>
       </div>
@@ -118,11 +120,13 @@ if (!twofa_user_enabled(get_current_user_id())) {
             </div>
 
             <p><button ng-click="$parent.finish()" ng-disabled="$parent.verification !== 'valid'">Finish</button></p>
+            <p><button ng-click="$parent.$parent.step = 2" ng-disabled="$parent.verification === 'valid'">Go back</button></p>
 
           </div>
           <div ng-switch-when="sms">
             <p>Current step: {{step}}/3</p>
             <p>TODO: SMS activation not implemented yet</p>
+            <p><button ng-click="$parent.$parent.step = 2">Go back</button></p>
           </div>
         </div>
       </div>
