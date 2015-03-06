@@ -45,6 +45,7 @@ add_action('wp_ajax_2fa_verify', function () {
   $valid = $otp->checkTotp(hex2bin($secret), $_POST['token']);
 
   update_user_meta(get_current_user_id(), '2fa_permanent_secret-'.$id, $secret);
+  delete_user_meta(get_current_user_id(), '2fa_temporary_secret');
 
   echo json_encode([
     'valid' => $valid,
