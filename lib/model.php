@@ -39,5 +39,6 @@ function twofa_user_activated($user_id) {
     return 0;
   }
 
-  trigger_error('TODO', E_USER_ERROR);
+  $devices = get_user_meta(get_current_user_id(), '2fa_devices', true);
+  return count($devices);
 }
