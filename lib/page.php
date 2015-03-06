@@ -9,9 +9,9 @@ add_action('admin_menu', function () {
 
       <?php
       if (isset($_GET['step']) && $_GET['step'] === 'setup') {
-        require(__DIR__.'/page-setup.php');
+        require(__DIR__.'/../views/setup.php');
       } else {
-        require(__DIR__.'/page-devices.php');
+        require(__DIR__.'/../views/devices.php');
       }
       ?>
     </div>
