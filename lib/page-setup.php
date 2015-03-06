@@ -120,7 +120,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
             </div>
 
             <p><button ng-click="$parent.finish()" ng-disabled="$parent.verification !== 'valid'">Finish</button></p>
-            <p><button ng-click="$parent.$parent.step = 2" ng-disabled="$parent.verification === 'valid'">Go back</button></p>
+            <p><button ng-click="$parent.$parent.totp_secret = null; $parent.$parent.step = 2" ng-disabled="$parent.verification === 'valid'">Go back</button></p>
 
           </div>
           <div ng-switch-when="sms">
