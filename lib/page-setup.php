@@ -10,7 +10,14 @@ if (!twofa_user_enabled(get_current_user_id())) {
   <?php
 } else {
   ?>
-  <div ng-app="2fa" ng-controller="Setup" ng-init="step=0">
+  <div ng-app="2fa" ng-controller="Setup" ng-init="step = 0">
+
+    <!-- data -->
+
+    <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
+
+    <!-- explanation and stuff -->
+
     <div ng-switch on="step">
       <div ng-switch-default>
         <p>TODO: some explanation about what's about to happen goes here.</p>
@@ -57,8 +64,13 @@ if (!twofa_user_enabled(get_current_user_id())) {
         <div ng-switch on="$parent.mode">
           <div ng-switch-when="totp">
             <p>Current step: {{step}}/3</p>
-            <p>TODO (2)</p>
-            <p><button ng-click="$parent.step = 3" ng-disabled="true">Next</button></p>
+            <div ng-show="!$parent.totp_secret">
+              <p>Generating secret...</p>
+            </div>
+            <div ng-show="$parent.totp_secret">
+              <p>{{$parent.totp_secret}}</p>
+              <p><button ng-click="$parent.step = 3" ng-disabled="true">Next</button></p>
+            </div>
           </div>
           <div ng-switch-when="sms">
             <p>Current step: {{step}}/3</p>
