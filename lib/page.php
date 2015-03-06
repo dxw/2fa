@@ -10,6 +10,8 @@ add_action('admin_menu', function () {
       <?php
       if (isset($_GET['step']) && $_GET['step'] === 'setup') {
         require(__DIR__.'/../views/setup.php');
+      } else if (isset($_GET['step']) && $_GET['step'] === 'deactivate') {
+        require(__DIR__.'/../views/deactivate.php');
       } else {
         require(__DIR__.'/../views/devices.php');
       }
