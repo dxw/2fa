@@ -36,7 +36,7 @@ if (isset($_POST['device_id'])) {
     ?>
     <p>No such device.</p>
     <?php
-  } elseif (count($devices) < 1) {
+  } elseif (count($devices) < 2) {
     ?>
     <p>You cannot get rid of your only device. Activate another first.</p>
     <?php
