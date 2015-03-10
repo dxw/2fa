@@ -25,9 +25,12 @@ if (!twofa_user_enabled(get_current_user_id())) {
     <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
     <input type="hidden" id="2fa_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_verify')) ?>">
 
-    <?php# explanation and stuff ?>
+    <?php# steps ?>
 
     <div ng-switch on="step">
+
+      <?php# explanation and stuff ?>
+
       <div ng-switch-default class="step">
         <p>TODO: some explanation about what's about to happen goes here.</p>
         <p><button class="button button-primary" ng-click="$parent.step = 1">Start setup</button></p>
@@ -114,7 +117,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
                 <p>Verifying...</p>
               </div>
               <div ng-switch-when="invalid">
-                <p>Invalid! TODO: explain what to do here</p>
+                <p>Invalid! Please try again, or click "go back" and scan the secret into your app again.</p>
               </div>
               <div ng-switch-when="valid">
                 <p>Valid!</p>
