@@ -11,7 +11,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
 } else {
 
   ?>
-  <div ng-app="2fa" ng-controller="Setup" class="twofa-setup">
+  <div ng-app="2fa" id="ng-app" ng-controller="Setup" class="twofa-setup">
     <?php# templates ?>
 
     <script type="text/ng-template" id="/current-step.html">
@@ -141,6 +141,10 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <div ng-switch-when="4" class="step">
         <p>Finished!</p>
         <p>Thank you for taking the time to improve the security of <?php echo esc_html(get_bloginfo('name')) ?>.</p>
+      </div>
+
+      <div ng-switch-when="3.14159265">
+        <!-- IE8 workaround -->
       </div>
 
     </div>
