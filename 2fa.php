@@ -16,3 +16,4 @@ require(__DIR__."/lib/ajax.php");
 require(__DIR__."/lib/network-sites.php");
 require(__DIR__."/lib/user-profile.php");
 require(__DIR__."/lib/page.php");
+require(__DIR__."/lib/force-setup.php");
