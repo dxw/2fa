@@ -4,6 +4,7 @@ Plugin Name: 2FA
 Description: Enables 2 factor authentication
 Author: dxw
 Author URI: http://dxw.com
+Network: true
 */
 
 require(__DIR__."/vendor.phar");
