@@ -121,7 +121,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
               </div>
             </div>
 
-            <p><button class="button button-primary" ng-click="$parent.finish()" ng-disabled="$parent.verification !== 'valid'">Finish</button></p>
+            <p><button class="button button-primary" ng-click="$parent.$parent.step = 4" ng-disabled="$parent.verification !== 'valid'">Finish</button></p>
             <p><button class="button" ng-click="$parent.$parent.totp_secret = null; $parent.$parent.step = 2" ng-disabled="$parent.verification === 'valid'">Go back</button></p>
 
           </div>
@@ -132,6 +132,14 @@ if (!twofa_user_enabled(get_current_user_id())) {
           </div>
         </div>
       </div>
+
+      <?php# finished ?>
+
+      <div ng-switch-when="4" class="step">
+        <p>Finished!</p>
+        <p>Thank you for taking the time to improve the security of <?php echo esc_html(get_bloginfo('name')) ?>.</p>
+      </div>
+
     </div>
   </div>
   <?php
