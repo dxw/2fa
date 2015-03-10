@@ -4,6 +4,7 @@ add_action('wp_ajax_2fa_generate_secret', function () {
   if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], '2fa_generate_secret')) {
     echo json_encode([
       'error' => true,
+      'reason' => 'invalid nonce',
     ]);
     exit(0);
   }
@@ -25,6 +26,7 @@ add_action('wp_ajax_2fa_verify', function () {
   if (!isset($_POST['nonce']) || !isset($_POST['token']) || !wp_verify_nonce($_POST['nonce'], '2fa_verify')) {
     echo json_encode([
       'error' => true,
+      'reason' => 'invalid nonce',
     ]);
     exit(0);
   }
@@ -43,6 +45,7 @@ add_action('wp_ajax_2fa_verify', function () {
   if (count($devices) >= TWOFA_MAX_DEVICES) {
     echo json_encode([
       'error' => true,
+      'reason' => 'max devices exceeded',
     ]);
     exit(0);
   }
