@@ -11,7 +11,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
 } else {
 
   ?>
-  <div ng-app="2fa" ng-controller="Setup">
+  <div ng-app="2fa" ng-controller="Setup" class="twofa-setup">
 
     <!-- data -->
 
@@ -21,14 +21,14 @@ if (!twofa_user_enabled(get_current_user_id())) {
     <!-- explanation and stuff -->
 
     <div ng-switch on="step">
-      <div ng-switch-default>
+      <div ng-switch-default class="twofa-step">
         <p>TODO: some explanation about what's about to happen goes here.</p>
         <p><button ng-click="$parent.step = 1">Start setup</button></p>
       </div>
 
       <!-- STEP 1 -->
 
-      <div ng-switch-when="1">
+      <div ng-switch-when="1" class="twofa-step">
         <p>Current step: {{step}}/3</p>
         <p>What kind of device do you have?</p>
         <ul>
@@ -62,7 +62,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
       <!-- STEP 2 -->
 
-      <div ng-switch-when="2">
+      <div ng-switch-when="2" class="twofa-step">
         <div ng-switch on="$parent.mode">
           <div ng-switch-when="totp">
             <p>Current step: {{step}}/3</p>
@@ -91,7 +91,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
       <!-- STEP 3 -->
 
-      <div ng-switch-when="3">
+      <div ng-switch-when="3" class="twofa-step">
         <div ng-switch on="$parent.mode">
           <div ng-switch-when="totp">
             <p>Current step: {{step}}/3</p>
