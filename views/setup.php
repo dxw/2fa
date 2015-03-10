@@ -30,7 +30,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
     <div ng-switch on="step">
       <div ng-switch-default class="step">
         <p>TODO: some explanation about what's about to happen goes here.</p>
-        <p><button ng-click="$parent.step = 1">Start setup</button></p>
+        <p><button class="button button-primary" ng-click="$parent.step = 1">Start setup</button></p>
       </div>
 
       <?php# STEP 1 ?>
@@ -64,7 +64,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
           </li>
         </ul>
 
-        <p><button ng-click="$parent.step = 2" ng-disabled="$parent.mode === undefined">Next</button></p>
+        <p><button class="button button-primary" ng-click="$parent.step = 2" ng-disabled="$parent.mode === undefined">Next</button></p>
       </div>
 
       <?php# STEP 2 ?>
@@ -84,14 +84,14 @@ if (!twofa_user_enabled(get_current_user_id())) {
                 <p>{{$parent.totp_secret}}</p>
               </div>
               <p><label><input type="checkbox" value="1" ng-model="scanned"> I've scanned this code into my device</label</p>
-              <p><button ng-click="$parent.$parent.step = 3" ng-disabled="!scanned">Next</button></p>
-              <p><button ng-click="$parent.$parent.step = 1">Go back</button></p>
+              <p><button class="button button-primary" ng-click="$parent.$parent.step = 3" ng-disabled="!scanned">Next</button></p>
+              <p><button class="button" ng-click="$parent.$parent.step = 1">Go back</button></p>
             </div>
           </div>
           <div ng-switch-when="sms">
             <div ng-include src="'/current-step.html'"></div>
             <p>TODO: SMS activation not implemented yet</p>
-            <p><button ng-click="$parent.$parent.step = 1">Go back</button></p>
+            <p><button class="button" ng-click="$parent.$parent.step = 1">Go back</button></p>
           </div>
         </div>
       </div>
@@ -107,7 +107,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
               Please enter the code that appears in the app:
               <input type="text" ng-model="token" ng-disabled="$parent.verification === 'valid'">
             </label>
-            <button ng-click="$parent.verify(token)" ng-disabled="token.length !== 6 || $parent.verification === 'verifying' || $parent.verification === 'valid'">Verify</button>
+            <button class="button" ng-click="$parent.verify(token)" ng-disabled="token.length !== 6 || $parent.verification === 'verifying' || $parent.verification === 'valid'">Verify</button>
 
             <div ng-switch on="$parent.verification">
               <div ng-switch-when="verifying">
@@ -121,14 +121,14 @@ if (!twofa_user_enabled(get_current_user_id())) {
               </div>
             </div>
 
-            <p><button ng-click="$parent.finish()" ng-disabled="$parent.verification !== 'valid'">Finish</button></p>
-            <p><button ng-click="$parent.$parent.totp_secret = null; $parent.$parent.step = 2" ng-disabled="$parent.verification === 'valid'">Go back</button></p>
+            <p><button class="button button-primary" ng-click="$parent.finish()" ng-disabled="$parent.verification !== 'valid'">Finish</button></p>
+            <p><button class="button" ng-click="$parent.$parent.totp_secret = null; $parent.$parent.step = 2" ng-disabled="$parent.verification === 'valid'">Go back</button></p>
 
           </div>
           <div ng-switch-when="sms">
             <div ng-include src="'/current-step.html'"></div>
             <p>TODO: SMS activation not implemented yet</p>
-            <p><button ng-click="$parent.$parent.step = 2">Go back</button></p>
+            <p><button class="button" ng-click="$parent.$parent.step = 2">Go back</button></p>
           </div>
         </div>
       </div>
