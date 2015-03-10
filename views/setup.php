@@ -15,7 +15,9 @@ if (!twofa_user_enabled(get_current_user_id())) {
     <?php# templates ?>
 
     <script type="text/ng-template" id="/current-step.html">
-      <p>Current step: {{step}}/3</p>
+      <ol class="position">
+        <li ng-repeat="i in [1,2,3]" ng-class="{current: i===step}">{{i}}</li>
+      </ol>
     </script>
 
     <?php# data ?>
@@ -26,14 +28,14 @@ if (!twofa_user_enabled(get_current_user_id())) {
     <?php# explanation and stuff ?>
 
     <div ng-switch on="step">
-      <div ng-switch-default class="twofa-step">
+      <div ng-switch-default class="step">
         <p>TODO: some explanation about what's about to happen goes here.</p>
         <p><button ng-click="$parent.step = 1">Start setup</button></p>
       </div>
 
       <?php# STEP 1 ?>
 
-      <div ng-switch-when="1" class="twofa-step">
+      <div ng-switch-when="1" class="step">
         <div ng-include src="'/current-step.html'"></div>
         <p>What kind of device do you have?</p>
         <ul>
@@ -67,7 +69,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
       <?php# STEP 2 ?>
 
-      <div ng-switch-when="2" class="twofa-step">
+      <div ng-switch-when="2" class="step">
         <div ng-switch on="$parent.mode">
           <div ng-switch-when="totp">
             <div ng-include src="'/current-step.html'"></div>
@@ -96,7 +98,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
       <?php# STEP 3 ?>
 
-      <div ng-switch-when="3" class="twofa-step">
+      <div ng-switch-when="3" class="step">
         <div ng-switch on="$parent.mode">
           <div ng-switch-when="totp">
             <div ng-include src="'/current-step.html'"></div>
