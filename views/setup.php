@@ -12,18 +12,18 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
   ?>
   <div ng-app="2fa" ng-controller="Setup" class="twofa-setup">
-    <!-- templates -->
+    <?php# templates ?>
 
     <script type="text/ng-template" id="/current-step.html">
       <p>Current step: {{step}}/3</p>
     </script>
 
-    <!-- data -->
+    <?php# data ?>
 
     <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
     <input type="hidden" id="2fa_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_verify')) ?>">
 
-    <!-- explanation and stuff -->
+    <?php# explanation and stuff ?>
 
     <div ng-switch on="step">
       <div ng-switch-default class="twofa-step">
@@ -31,7 +31,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         <p><button ng-click="$parent.step = 1">Start setup</button></p>
       </div>
 
-      <!-- STEP 1 -->
+      <?php# STEP 1 ?>
 
       <div ng-switch-when="1" class="twofa-step">
         <div ng-include src="'/current-step.html'"></div>
@@ -65,7 +65,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         <p><button ng-click="$parent.step = 2" ng-disabled="$parent.mode === undefined">Next</button></p>
       </div>
 
-      <!-- STEP 2 -->
+      <?php# STEP 2 ?>
 
       <div ng-switch-when="2" class="twofa-step">
         <div ng-switch on="$parent.mode">
@@ -94,7 +94,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         </div>
       </div>
 
-      <!-- STEP 3 -->
+      <?php# STEP 3 ?>
 
       <div ng-switch-when="3" class="twofa-step">
         <div ng-switch on="$parent.mode">
