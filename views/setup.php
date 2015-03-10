@@ -12,6 +12,11 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
   ?>
   <div ng-app="2fa" ng-controller="Setup" class="twofa-setup">
+    <!-- templates -->
+
+    <script type="text/ng-template" id="/current-step.html">
+      <p>Current step: {{step}}/3</p>
+    </script>
 
     <!-- data -->
 
@@ -29,7 +34,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <!-- STEP 1 -->
 
       <div ng-switch-when="1" class="twofa-step">
-        <p>Current step: {{step}}/3</p>
+        <div ng-include src="'/current-step.html'"></div>
         <p>What kind of device do you have?</p>
         <ul>
           <li>
@@ -65,7 +70,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <div ng-switch-when="2" class="twofa-step">
         <div ng-switch on="$parent.mode">
           <div ng-switch-when="totp">
-            <p>Current step: {{step}}/3</p>
+            <div ng-include src="'/current-step.html'"></div>
             <div ng-show="!$parent.totp_secret">
               <p>Generating secret...</p>
             </div>
@@ -82,7 +87,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
             </div>
           </div>
           <div ng-switch-when="sms">
-            <p>Current step: {{step}}/3</p>
+            <div ng-include src="'/current-step.html'"></div>
             <p>TODO: SMS activation not implemented yet</p>
             <p><button ng-click="$parent.$parent.step = 1">Go back</button></p>
           </div>
@@ -94,7 +99,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <div ng-switch-when="3" class="twofa-step">
         <div ng-switch on="$parent.mode">
           <div ng-switch-when="totp">
-            <p>Current step: {{step}}/3</p>
+            <div ng-include src="'/current-step.html'"></div>
 
             <label>
               Please enter the code that appears in the app:
@@ -119,7 +124,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
           </div>
           <div ng-switch-when="sms">
-            <p>Current step: {{step}}/3</p>
+            <div ng-include src="'/current-step.html'"></div>
             <p>TODO: SMS activation not implemented yet</p>
             <p><button ng-click="$parent.$parent.step = 2">Go back</button></p>
           </div>
