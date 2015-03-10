@@ -81,7 +81,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
             </div>
             <div ng-show="$parent.totp_secret">
               <p><img src="<?php echo esc_attr(get_admin_url(null, 'admin-ajax.php?action=2fa_qr')) ?>&cache={{$parent.rand()}}"></p>
-              <p><a ng-click="text = 1">Can't scan it? Show the text instead</a></p>
+              <p><span ng-click="text = 1">Can't scan it? Show the text instead</span></p>
               <div ng-show="text">
                 <p>Set up a new account using this key and selecting the "time based" option:</p>
                 <p>{{$parent.totp_secret}}</p>
