@@ -38,6 +38,13 @@ add_action('wp_ajax_2fa_verify', function () {
   $otp = new \Otp\Otp();
   $valid = $otp->checkTotp(\Base32\Base32::decode($secret), $_POST['token']);
 
+  if (!$valid) {
+    echo json_encode([
+      'valid' => false,
+    ]);
+    exit(0);
+  }
+
   $devices = get_user_meta(get_current_user_id(), '2fa_devices', true);
   if (!is_array($devices)) {
     $devices = [];
@@ -58,7 +65,7 @@ add_action('wp_ajax_2fa_verify', function () {
   delete_user_meta(get_current_user_id(), '2fa_temporary_secret');
 
   echo json_encode([
-    'valid' => $valid,
+    'valid' => true,
   ]);
   exit(0);
 });
