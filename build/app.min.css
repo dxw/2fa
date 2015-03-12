@@ -1,0 +1,23 @@
+.twofa-setup .step {
+  background: white;
+  color: black;
+  width: 80%;
+  margin: 0 auto;
+  padding: 25px;
+}
+
+.twofa-setup .position {
+  list-style: none;
+  margin: 0;
+}
+
+.twofa-setup .position li {
+  float: left;
+  width: 33%;
+  text-align: center;
+}
+
+.twofa-setup .position li.current {
+  background: #00cfff;
+  color: white;
+}

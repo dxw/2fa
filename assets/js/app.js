@@ -8,7 +8,7 @@
         return str.join("&");
     }
 
-    var setup = angular.module('2fa', [])
+    var setup = angular.module('2fa', ['utils.autofocus'])
 
     setup.controller('Setup', function ($scope, $http) {
 

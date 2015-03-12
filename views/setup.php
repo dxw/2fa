@@ -107,7 +107,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
             <label>
               Please enter the code that appears in the app:
-              <input type="text" ng-model="token" ng-disabled="$parent.verification === 'valid'">
+              <input type="text" ng-model="token" ng-disabled="$parent.verification === 'valid'" autofocus>
             </label>
             <button class="button" ng-click="$parent.verify(token)" ng-disabled="token.length !== 6 || $parent.verification === 'verifying' || $parent.verification === 'valid'">Verify</button>
 
