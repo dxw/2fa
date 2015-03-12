@@ -23,6 +23,13 @@ add_action('admin_init', function() {
   $session = $instance->get(wp_get_session_token());
   $forced_for_session = isset($session['2fa_forced']);
 
+  // If 2FA gets deactivated while logged in, remove the 2fa_forced marker
+  // This is to prevent problems from a user logging in, asking an admin to disable 2fa, then the admin enabling 2fa at a later date
+  if (!$enabled) {
+    unset($session['2fa_forced']);
+    $instance->update(wp_get_session_token(), $session);
+  }
+
   if ($enabled && !$activated && !$on_2fa_page && !$ajax && $forced_for_session) {
     wp_redirect(get_admin_url(0, 'users.php?page=2fa&step=setup'));
     exit(0);
