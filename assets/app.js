@@ -70,5 +70,9 @@
             return Math.floor(Math.random()*16777215).toString(16)
         }
 
+        $scope.prettyPrintSecret = function (secret) {
+            return secret.replace(/(....)/g, '$1 ').trim()
+        }
+
     })
 })()

@@ -83,8 +83,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
               <p><img src="<?php echo esc_attr(get_admin_url(null, 'admin-ajax.php?action=2fa_qr')) ?>&cache={{$parent.rand()}}"></p>
               <p><span ng-click="text = 1">Can't scan it? Show the text instead</span></p>
               <div ng-show="text">
-                <p>Set up a new account using this key and selecting the "time based" option:</p>
-                <p>{{$parent.totp_secret}}</p>
+                <p>Set up a new account using the "time based" option and enter this code (case insensitive, spaces optional): <code>{{$parent.prettyPrintSecret($parent.totp_secret)}}</code></p>
               </div>
               <p><label><input type="checkbox" value="1" ng-model="scanned"> I've scanned the code into my device <span ng-show="text">or copied the text</span></label</p>
               <p><button class="button button-primary" ng-click="$parent.$parent.step = 3" ng-disabled="!scanned">Next</button></p>
