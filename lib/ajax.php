@@ -10,7 +10,7 @@ add_action('wp_ajax_2fa_generate_secret', function () {
   }
 
   // Generate shared secret (base32)
-  $secret = \Otp\GoogleAuthenticator::generateRandom(40);
+  $secret = \Otp\GoogleAuthenticator::generateRandom(16);
 
   // Store it temporarily
   update_user_meta(get_current_user_id(), '2fa_temporary_secret', $secret);
