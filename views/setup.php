@@ -86,7 +86,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
                 <p>Set up a new account using this key and selecting the "time based" option:</p>
                 <p>{{$parent.totp_secret}}</p>
               </div>
-              <p><label><input type="checkbox" value="1" ng-model="scanned"> I've scanned this code into my device</label</p>
+              <p><label><input type="checkbox" value="1" ng-model="scanned"> I've scanned the code into my device <span ng-show="text">or copied the text</span></label</p>
               <p><button class="button button-primary" ng-click="$parent.$parent.step = 3" ng-disabled="!scanned">Next</button></p>
               <p><button class="button" ng-click="$parent.$parent.step = 1">Go back</button></p>
             </div>
