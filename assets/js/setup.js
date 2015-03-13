@@ -1,6 +1,8 @@
 (function() {
     'use strict';
 
+    require('./ng-autofocus.js')
+
     var urlencoded = function(obj) {
         var str = [];
         for(var p in obj)
@@ -71,7 +73,9 @@
         }
 
         $scope.prettyPrintSecret = function (secret) {
-            return secret.replace(/(....)/g, '$1 ').trim()
+            if (typeof secret === 'string') {
+                return secret.replace(/(....)/g, '$1 ').trim()
+            }
         }
 
     })
