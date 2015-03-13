@@ -9,21 +9,18 @@ add_filter('wpmu_blogs_columns', function ($columns) {
 
 add_action('manage_sites_custom_column', function ($column_name, $blawg_id) {
   if ($column_name === '2fa') {
-    $enabled === twofa_blog_enabled($blawg_id);
-
-    echo $enabled ? 'Enabled' : 'Disabled';
+    echo twofa_blog_enabled($blawg_id) ? 'Enabled' : 'Disabled';
   }
 }, 10, 2);
 
 // Enabled/disabled status option
 
 add_action('wpmueditblogaction', function ($id) {
-  $enabled = get_option('2fa_enabled') === 'yes';
   ?>
 
   <tr class="form-field">
     <th scope="row">2FA</th>
-    <td><label><input name="2fa_enabled" type="checkbox" value="yes" <?php echo $enabled ? 'checked' : '' ?>> Enabled</label></td>
+    <td><label><input name="2fa_enabled" type="checkbox" value="yes" <?php echo twofa_blog_enabled($id) ? 'checked' : '' ?>> Enabled</label></td>
   </tr>
 
   <?php
