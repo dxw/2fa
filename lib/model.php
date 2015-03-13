@@ -43,7 +43,7 @@ function twofa_user_activated($user_id) {
 }
 
 function twofa_user_devices($user_id) {
-  $_devices = get_user_meta(get_current_user_id(), '2fa_devices', true);
+  $_devices = get_user_meta($user_id, '2fa_devices', true);
   $devices = [];
 
   if (is_array($_devices)) {
