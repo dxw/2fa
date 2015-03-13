@@ -9,7 +9,16 @@ add_filter('wpmu_blogs_columns', function ($columns) {
 
 add_action('manage_sites_custom_column', function ($column_name, $blawg_id) {
   if ($column_name === '2fa') {
-    echo twofa_blog_enabled($blawg_id) ? 'Enabled' : 'Disabled';
+    ?>
+    <div class="js-2fa-toggle">
+      <input type="hidden" class="blog_id" value="<?php echo esc_attr($blawg_id) ?>">
+      <input type="hidden" class="nonce" value="<?php echo esc_attr(wp_create_nonce('2fa_toggle-'.$blawg_id)) ?>">
+      <input type="hidden" class="enabled" value="<?php echo esc_attr(twofa_blog_enabled($blawg_id)) ?>">
+      <div class="js-2fa-inner">
+        <?php echo twofa_blog_enabled($blawg_id) ? 'Enabled' : 'Disabled' ?>
+      </div>
+    </div>
+    <?php
   }
 }, 10, 2);
 
