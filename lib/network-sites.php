@@ -43,3 +43,36 @@ add_action('wpmu_update_blog_options', function () {
     update_option('2fa_enabled', 'no');
   }
 });
+
+// Handler for JS
+add_action('wp_ajax_2fa_network_site_toggle', function () {
+  if (!isset($_POST['blog_id']) || !isset($_POST['enabled']) || !isset($_POST['nonce'])) {
+    twofa_json([
+      'error' => true,
+      'reason' => 'bad request',
+    ]);
+  }
+
+  $blawg_id = absint($_POST['blog_id']);
+  $enabled = $_POST['enabled'] === 'yes';
+
+  if (!wp_verify_nonce($_POST['nonce'], '2fa_toggle-'.$blawg_id)) {
+    twofa_json([
+      'error' => true,
+      'reason' => 'bad nonce',
+    ]);
+  }
+
+  if (!current_user_can('manage_sites')) {
+    twofa_json([
+      'error' => true,
+      'reason' => 'permissions error',
+    ]);
+  }
+
+  update_blog_option($blawg_id, '2fa_enabled', $enabled ? 'yes' : 'no');
+
+  twofa_json([
+    'success' => true,
+  ]);
+});

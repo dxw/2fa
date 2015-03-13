@@ -2,11 +2,10 @@
 
 add_action('wp_ajax_2fa_generate_secret', function () {
   if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], '2fa_generate_secret')) {
-    echo json_encode([
+    twofa_json([
       'error' => true,
       'reason' => 'invalid nonce',
     ]);
-    exit(0);
   }
 
   // Generate shared secret (base32)
@@ -16,19 +15,17 @@ add_action('wp_ajax_2fa_generate_secret', function () {
   update_user_meta(get_current_user_id(), '2fa_temporary_secret', $secret);
 
   // Output it
-  echo json_encode([
+  twofa_json([
     'secret' => $secret,
   ]);
-  exit(0);
 });
 
 add_action('wp_ajax_2fa_verify', function () {
   if (!isset($_POST['nonce']) || !isset($_POST['token']) || !wp_verify_nonce($_POST['nonce'], '2fa_verify')) {
-    echo json_encode([
+    twofa_json([
       'error' => true,
       'reason' => 'invalid nonce',
     ]);
-    exit(0);
   }
 
   // Get shared secret
@@ -39,10 +36,9 @@ add_action('wp_ajax_2fa_verify', function () {
   $valid = $otp->checkTotp(\Base32\Base32::decode($secret), $_POST['token']);
 
   if (!$valid) {
-    echo json_encode([
+    twofa_json([
       'valid' => false,
     ]);
-    exit(0);
   }
 
   $devices = get_user_meta(get_current_user_id(), '2fa_devices', true);
@@ -50,11 +46,10 @@ add_action('wp_ajax_2fa_verify', function () {
     $devices = [];
   }
   if (count($devices) >= TWOFA_MAX_DEVICES) {
-    echo json_encode([
+    twofa_json([
       'error' => true,
       'reason' => 'max devices exceeded',
     ]);
-    exit(0);
   }
   $devices[] = [
     'mode' => 'totp',
@@ -64,10 +59,9 @@ add_action('wp_ajax_2fa_verify', function () {
   update_user_meta(get_current_user_id(), '2fa_devices', $devices);
   delete_user_meta(get_current_user_id(), '2fa_temporary_secret');
 
-  echo json_encode([
+  twofa_json([
     'valid' => true,
   ]);
-  exit(0);
 });
 
 add_action('wp_ajax_2fa_qr', function () {
