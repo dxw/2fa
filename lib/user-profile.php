@@ -13,15 +13,17 @@ add_action('personal_options', function ($user) {
     <th scope="row">2FA</th>
     <td>
       <fieldset>
-        <legend class="screen-reader-text"><span>2FA</span></legend>
+        <legend class="screen-reader-text"><span>2FA</span><br></legend>
         <label for="2fa_override_yes">
           <input name="2fa_override" type="radio" id="2fa_override_yes" value="yes" <?php echo $enabled === 'yes' ? 'checked' : '' ?> <?php echo $disabled ? 'disabled' : '' ?>>
           Enabled (this user must use 2FA even if they belong to no sites which require 2FA)
         </label>
+        <br>
         <label for="2fa_override_default">
           <input name="2fa_override" type="radio" id="2fa_override_default" value="default" <?php echo $enabled === 'default' ? 'checked' : '' ?> <?php echo $disabled ? 'disabled' : '' ?>>
           Default (if the user is a member of a site which requires 2FA they will use it, if they don't they won't)
         </label>
+        <br>
         <label for="2fa_override_no">
           <input name="2fa_override" type="radio" id="2fa_override_no" value="no" <?php echo $enabled === 'no' ? 'checked' : '' ?> <?php echo $disabled ? 'disabled' : '' ?>>
           Disabled (this user will not use 2FA even if they belong to a site which requires it)
