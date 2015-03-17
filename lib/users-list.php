@@ -13,9 +13,6 @@ add_filter('manage_users_columns', function ($columns) {
 add_filter('manage_users_custom_column', function ($value, $column_name, $user_id) {
   if ($column_name === '2fa') {
     $s = '';
-    if (twofa_user_enabled($user_id) && twofa_user_activated($user_id)) {
-      $s .= '✅';
-    }
 
     $s .= twofa_user_enabled($user_id) ? 'Enabled' : 'Disabled';
     $s .= ' - ';
