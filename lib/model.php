@@ -57,3 +57,18 @@ function twofa_user_devices($user_id) {
 
   return $devices;
 }
+
+function twofa_user_verify_token($user_id, $token) {
+  $_devices = get_user_meta($user_id, '2fa_devices', true);
+  foreach ($_devices as $k => $dev) {
+    if ($dev['mode'] === 'totp') {
+      // Verify it
+      $otp = new \Otp\Otp();
+      if ($otp->checkTotp(\Base32\Base32::decode($dev['secret']), $token)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}

@@ -5,9 +5,9 @@ add_action('login_form_login', function () {
 
   $first_phase = true;
 
-  // Logging in
+  // Phase 1
 
-  if (isset($_POST['log']) && isset($_POST['pwd'])) {
+  if ($first_phase && isset($_POST['log']) && isset($_POST['pwd'])) {
     // Verify credentials
     $user = wp_authenticate($_POST['log'], $_POST['pwd']);
 
@@ -28,9 +28,32 @@ add_action('login_form_login', function () {
       // TODO: redirect to the correct URL
       wp_redirect(get_admin_url());
     }
+  }
 
+  // Phase 2
 
-    // Phase 2
+  if (isset($_POST['token']) && isset($_POST['user_id']) && isset($_POST['nonce'])) {
+    $first_phase = false;
+
+    $user_id = absint($_POST['user_id']);
+
+    if ($user_id <= 0) {
+      wp_die('TODO: bad user_id');
+    }
+
+    if (!wp_verify_nonce('2fa_phase2_'.$user_id, $_POST['nonce'])) {
+      wp_die('TODO: invalid nonce');
+    }
+
+    if (!twofa_user_verify_token($user_id, $_POST['token'])) {
+      wp_die('TODO: invalid token');
+    }
+
+    $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
+    wp_set_auth_cookie($user_id, $rememberme);
+
+    //TODO: redirect to the correct URL
+    wp_redirect(get_admin_url());
   }
 
   // Templates
@@ -62,12 +85,16 @@ add_action('login_form_login', function () {
   } else {
     // Phase 2 - token input
 
+    //TODO: nonces are proprably inappropriate for this task
     ?>
 
     <form method="POST">
       <label>
         Enter the token shown on your device
         <input type="text" name="token" autofocus>
+        <input type="hidden" name="user_id" value="<?php echo esc_attr(absint($user->ID)) ?>">
+        <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('2fa_phase2_'.$user->ID)) ?>">
+        <input type="hidden" name="rememberme" value="<?php echo isset($_POST['rememberme']) ? 'yes' : 'no' ?>">
       </label>
 
       <input type="submit" value="Verify">
