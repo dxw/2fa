@@ -59,6 +59,11 @@ function twofa_user_devices($user_id) {
 }
 
 function twofa_user_verify_token($user_id, $token) {
+  if (twofa_token_blacklist($token)) {
+    echo 'blacklist';
+    return false;
+  }
+
   $_devices = get_user_meta($user_id, '2fa_devices', true);
   foreach ($_devices as $k => $dev) {
     if ($dev['mode'] === 'totp') {
@@ -81,4 +86,36 @@ function twofa_json($data) {
 function twofa_verify_token($secret, $token) {
   $otp = new \Otp\Otp();
   return $otp->checkTotp(\Base32\Base32::decode($secret), $token, TWOFA_WINDOW);
+}
+
+// Stores a token in the blacklist and returns true if the token was already in the blacklist
+function twofa_token_blacklist($token) {
+  // Retrieve blacklist
+  $blacklist = get_site_option('2fa_token_blacklist');
+  if (!is_array($blacklist)) {
+    $blacklist = [];
+  }
+
+  // Purge the blacklist of old entries
+  $blacklist = array_filter($blacklist, function ($item) {
+    return $item['time'] > (time() - TWOFA_BLACKLIST_DURATION);
+  });
+
+  // Figure out whether the token was already on the blacklist
+  $return = false;
+  foreach ($blacklist as $item) {
+    if ($item['token'] === $token) {
+      $return = true;
+      break;
+    }
+  }
+
+  // Add the token to the blacklist
+  $blacklist[] = [
+    'time' => time(),
+    'token' => $token,
+  ];
+  update_site_option('2fa_token_blacklist', $blacklist);
+
+  return $return;
 }
