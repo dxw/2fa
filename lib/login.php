@@ -41,7 +41,7 @@ add_action('login_form_login', function () {
       wp_die('TODO: bad user_id');
     }
 
-    if (!wp_verify_nonce('2fa_phase2_'.$user_id, $_POST['nonce'])) {
+    if (!wp_verify_nonce($_POST['nonce'], '2fa_phase2_'.$user_id)) {
       wp_die('TODO: invalid nonce');
     }
 
