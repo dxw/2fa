@@ -32,8 +32,7 @@ add_action('wp_ajax_2fa_verify', function () {
   $secret = get_user_meta(get_current_user_id(), '2fa_temporary_secret', true);
 
   // Verify it
-  $otp = new \Otp\Otp();
-  $valid = $otp->checkTotp(\Base32\Base32::decode($secret), $_POST['token'], TWOFA_WINDOW);
+  $valid = twofa_verify_token($secret, $_POST['token']);
 
   if (!$valid) {
     twofa_json([

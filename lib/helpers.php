@@ -63,8 +63,7 @@ function twofa_user_verify_token($user_id, $token) {
   foreach ($_devices as $k => $dev) {
     if ($dev['mode'] === 'totp') {
       // Verify it
-      $otp = new \Otp\Otp();
-      if ($otp->checkTotp(\Base32\Base32::decode($dev['secret']), $token, TWOFA_WINDOW)) {
+      if (twofa_verify_token($dev['secret'], $token)) {
         return true;
       }
     }
@@ -77,4 +76,9 @@ function twofa_json($data) {
   header('Content-Type: application/json');
   echo json_encode($data);
   exit(0);
+}
+
+function twofa_verify_token($secret, $token) {
+  $otp = new \Otp\Otp();
+  return $otp->checkTotp(\Base32\Base32::decode($secret), $token, TWOFA_WINDOW);
 }
