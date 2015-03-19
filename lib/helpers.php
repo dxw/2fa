@@ -88,6 +88,7 @@ function twofa_verify_token($secret, $token) {
 }
 
 // Stores a token in the blacklist and returns true if the token was already in the blacklist
+//TODO: this function is a potential source of race conditions
 function twofa_token_blacklist($token) {
   // Retrieve blacklist
   $blacklist = get_site_option('2fa_token_blacklist');
