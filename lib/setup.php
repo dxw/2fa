@@ -33,7 +33,7 @@ add_action('wp_ajax_2fa_verify', function () {
 
   // Verify it
   $otp = new \Otp\Otp();
-  $valid = $otp->checkTotp(\Base32\Base32::decode($secret), $_POST['token']);
+  $valid = $otp->checkTotp(\Base32\Base32::decode($secret), $_POST['token'], TWOFA_WINDOW);
 
   if (!$valid) {
     twofa_json([

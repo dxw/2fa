@@ -64,7 +64,7 @@ function twofa_user_verify_token($user_id, $token) {
     if ($dev['mode'] === 'totp') {
       // Verify it
       $otp = new \Otp\Otp();
-      if ($otp->checkTotp(\Base32\Base32::decode($dev['secret']), $token)) {
+      if ($otp->checkTotp(\Base32\Base32::decode($dev['secret']), $token, TWOFA_WINDOW)) {
         return true;
       }
     }
