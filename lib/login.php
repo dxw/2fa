@@ -144,15 +144,18 @@ add_action('login_form_login', function () use ($redirect, $render) {
     $user_id = absint($_POST['user_id']);
 
     if ($user_id <= 0) {
-      wp_die('TODO: bad user_id');
+      $errors->add('bad_user_id', __('An error occurred. Please try again.'));
+      $render(true, $errors, $redirect_to, null, null);
     }
 
     if (!wp_verify_nonce($_POST['nonce'], '2fa_phase2_'.$user_id)) {
-      wp_die('TODO: invalid nonce');
+      $errors->add('invalid_nonce', __('An error occurred. Please try again.'));
+      $render(true, $errors, $redirect_to, null, null);
     }
 
     if (!twofa_user_verify_token($user_id, $_POST['token'])) {
-      wp_die('TODO: invalid token');
+      $errors->add('invalid_token', __('Invalid token. Try again.'));
+      $render($first_phase, $errors, $redirect_to, null, null);
     }
 
     $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
