@@ -86,26 +86,41 @@ add_action('login_form_login', function () use ($redirect) {
 
   // Templates
 
+  $errors = [];
+
+  do_action( 'login_enqueue_scripts' );
+  do_action( 'login_head' );
+
+  $errors = apply_filters( 'wp_login_errors', $errors, $redirect_to );
+  login_header(__('Log In'), '', $errors);
+
   if ($first_phase) {
     // Phase 1 - user/pass form
 
     ?>
 
-    <form method="POST">
-      <label>
-        Username
-        <input type="text" name="log" autofocus>
-      </label>
-      <label>
-        Password
-        <input type="text" name="pwd">
-      </label>
-      <label>
-        <input type="checkbox" name="rememberme" value="yes">
-        Remember Me
-      </label>
-
-      <input type="submit" value="Log In">
+    <form method="POST" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')) ?>" id="loginform" name="loginform">
+      <p>
+        <label for="user_login">
+          <?php _e('Username') ?>
+          <br>
+          <input type="text" name="log" id="user_login" class="input" value="<?php echo esc_attr($user_login); ?>" size="20" autofocus>
+        </label>
+      </p>
+      <p>
+        <label for="user_pass">
+          <?php _e('Password') ?>
+          <br>
+          <input type="password" name="pwd" id="user_pass" class="input" value="" size="20">
+        </label>
+      </p>
+      <?php do_action( 'login_form' ) ?>
+      <p class="forgetmenot"><label for="rememberme"><input name="rememberme" type="checkbox" id="rememberme" value="forever" <?php checked($rememberme); ?>> <?php esc_attr_e('Remember Me') ?></label></p>
+      <p class="submit">
+        <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Log In'); ?>">
+        <input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_to); ?>">
+        <input type="hidden" name="testcookie" value="1">
+      </p>
     </form>
 
     <?php
@@ -116,22 +131,28 @@ add_action('login_form_login', function () use ($redirect) {
     //TODO: nonces are proprably inappropriate for this task
     ?>
 
-    <form method="POST">
-      <label>
-        Enter the token shown on your device
-        <input type="text" name="token" autofocus>
-      </label>
-
-      <input type="hidden" name="user_id" value="<?php echo esc_attr(absint($user->ID)) ?>">
-      <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('2fa_phase2_'.$user->ID)) ?>">
-      <input type="hidden" name="rememberme" value="<?php echo isset($_POST['rememberme']) ? 'yes' : 'no' ?>">
-
-      <input type="submit" value="Verify">
+    <form method="POST" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')) ?>" id="loginform" name="loginform">
+      <p>
+        <label for="user_login">
+          <?php _e('Enter the token shown on your device') ?>
+          <br>
+          <input type="text" name="token" id="user_login" class="input" value="<?php echo esc_attr($user_login); ?>" size="20" autofocus>
+        </label>
+      </p>
+      <?php do_action( 'login_form' ) ?>
+      <p class="submit">
+        <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Verify'); ?>">
+        <input type="hidden" name="user_id" value="<?php echo esc_attr(absint($user->ID)) ?>">
+        <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('2fa_phase2_'.$user->ID)) ?>">
+        <input type="hidden" name="rememberme" value="<?php echo isset($_POST['rememberme']) ? 'yes' : 'no' ?>">
+      </p>
     </form>
 
     <?php
 
   }
+
+  login_footer();
 
   exit(0);
 });
