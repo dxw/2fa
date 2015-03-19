@@ -1,7 +1,37 @@
 <?php
 
+$redirect = function ($user) {
+  // Copied verbatim from wp-login.php
+
+  if ( isset( $_REQUEST['redirect_to'] ) ) {
+    $redirect_to = $_REQUEST['redirect_to'];
+    // Redirect to https if user wants ssl
+    if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') )
+    $redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
+  } else {
+    $redirect_to = admin_url();
+  }
+
+  $requested_redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
+  $redirect_to = apply_filters( 'login_redirect', $redirect_to, $requested_redirect_to, $user );
+
+  if ( ( empty( $redirect_to ) || $redirect_to == 'wp-admin/' || $redirect_to == admin_url() ) ) {
+    // If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.
+    if ( is_multisite() && !get_active_blog_for_user($user->ID) && !is_super_admin( $user->ID ) )
+    $redirect_to = user_admin_url();
+    elseif ( is_multisite() && !$user->has_cap('read') )
+    $redirect_to = get_dashboard_url( $user->ID );
+    elseif ( !$user->has_cap('edit_posts') )
+    $redirect_to = admin_url('profile.php');
+  }
+
+  wp_safe_redirect($redirect_to);
+  exit();
+};
+
+
 // Show our own login form
-add_action('login_form_login', function () {
+add_action('login_form_login', function () use ($redirect) {
 
   $first_phase = true;
 
@@ -25,8 +55,7 @@ add_action('login_form_login', function () {
       $rememberme = isset($_POST['rememberme']);
       wp_set_auth_cookie($user->ID, $rememberme);
 
-      // TODO: redirect to the correct URL
-      wp_redirect(get_admin_url());
+      $redirect($user);
     }
   }
 
@@ -52,8 +81,7 @@ add_action('login_form_login', function () {
     $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
     wp_set_auth_cookie($user_id, $rememberme);
 
-    //TODO: redirect to the correct URL
-    wp_redirect(get_admin_url());
+    $redirect(get_user_by('id', $user_id));
   }
 
   // Templates
