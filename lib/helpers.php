@@ -60,7 +60,6 @@ function twofa_user_devices($user_id) {
 
 function twofa_user_verify_token($user_id, $token) {
   if (twofa_token_blacklist($token)) {
-    echo 'blacklist';
     return false;
   }
 
