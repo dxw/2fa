@@ -155,7 +155,7 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
     if (!twofa_user_verify_token($user_id, $_POST['token'])) {
       $errors->add('invalid_token', __('Invalid token. Try again.'));
-      $render($first_phase, $errors, $redirect_to, null, null);
+      $render($first_phase, $errors, $redirect_to, null, $user_id);
     }
 
     $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
