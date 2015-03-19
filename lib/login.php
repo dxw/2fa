@@ -92,10 +92,11 @@ add_action('login_form_login', function () {
       <label>
         Enter the token shown on your device
         <input type="text" name="token" autofocus>
-        <input type="hidden" name="user_id" value="<?php echo esc_attr(absint($user->ID)) ?>">
-        <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('2fa_phase2_'.$user->ID)) ?>">
-        <input type="hidden" name="rememberme" value="<?php echo isset($_POST['rememberme']) ? 'yes' : 'no' ?>">
       </label>
+
+      <input type="hidden" name="user_id" value="<?php echo esc_attr(absint($user->ID)) ?>">
+      <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('2fa_phase2_'.$user->ID)) ?>">
+      <input type="hidden" name="rememberme" value="<?php echo isset($_POST['rememberme']) ? 'yes' : 'no' ?>">
 
       <input type="submit" value="Verify">
     </form>
