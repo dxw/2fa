@@ -29,64 +29,12 @@ $redirect = function ($user) {
   exit();
 };
 
-
-// Show our own login form
-add_action('login_form_login', function () use ($redirect) {
-
-  $first_phase = true;
-
-  // Phase 1
-
-  if ($first_phase && isset($_POST['log']) && isset($_POST['pwd'])) {
-    // Verify credentials
-    $user = wp_authenticate($_POST['log'], $_POST['pwd']);
-
-    if (is_wp_error($user)) {
-      wp_die('TODO: could not authenticate');
-    }
-
-    if (twofa_user_activated($user->ID)) {
-      // If the user has 2fa activated, send them to phase 2
-
-      $first_phase = false;
-    } else {
-      // If the user has 2fa deactivated, log them in
-
-      $rememberme = isset($_POST['rememberme']);
-      wp_set_auth_cookie($user->ID, $rememberme);
-
-      $redirect($user);
-    }
+$render = function ($first_phase, $errors, $redirect_to, $rememberme, $user_id) {
+  $user = get_user_by('id', $user_id);
+  $user_login = '';
+  if (!is_wp_error($user)) {
+    $user_login = $user->user_login;
   }
-
-  // Phase 2
-
-  if (isset($_POST['token']) && isset($_POST['user_id']) && isset($_POST['nonce'])) {
-    $first_phase = false;
-
-    $user_id = absint($_POST['user_id']);
-
-    if ($user_id <= 0) {
-      wp_die('TODO: bad user_id');
-    }
-
-    if (!wp_verify_nonce($_POST['nonce'], '2fa_phase2_'.$user_id)) {
-      wp_die('TODO: invalid nonce');
-    }
-
-    if (!twofa_user_verify_token($user_id, $_POST['token'])) {
-      wp_die('TODO: invalid token');
-    }
-
-    $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
-    wp_set_auth_cookie($user_id, $rememberme);
-
-    $redirect(get_user_by('id', $user_id));
-  }
-
-  // Templates
-
-  $errors = [];
 
   do_action( 'login_enqueue_scripts' );
   do_action( 'login_head' );
@@ -133,17 +81,17 @@ add_action('login_form_login', function () use ($redirect) {
 
     <form method="POST" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')) ?>" id="loginform" name="loginform">
       <p>
-        <label for="user_login">
+        <label for="token">
           <?php _e('Enter the token shown on your device') ?>
           <br>
-          <input type="text" name="token" id="user_login" class="input" value="<?php echo esc_attr($user_login); ?>" size="20" autofocus>
+          <input type="text" name="token" id="token" class="input" size="20" autofocus>
         </label>
       </p>
       <?php do_action( 'login_form' ) ?>
       <p class="submit">
         <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Verify'); ?>">
-        <input type="hidden" name="user_id" value="<?php echo esc_attr(absint($user->ID)) ?>">
-        <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('2fa_phase2_'.$user->ID)) ?>">
+        <input type="hidden" name="user_id" value="<?php echo esc_attr(absint($user_id)) ?>">
+        <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('2fa_phase2_'.$user_id)) ?>">
         <input type="hidden" name="rememberme" value="<?php echo isset($_POST['rememberme']) ? 'yes' : 'no' ?>">
       </p>
     </form>
@@ -153,6 +101,66 @@ add_action('login_form_login', function () use ($redirect) {
   }
 
   login_footer();
+  exit(0);
+};
 
+// Show our own login form
+add_action('login_form_login', function () use ($redirect, $render) {
+
+  $errors = new WP_Error;
+
+  $first_phase = true;
+
+  // Phase 1
+
+  if ($first_phase && isset($_POST['log']) && isset($_POST['pwd'])) {
+    // Verify credentials
+    $user = wp_authenticate($_POST['log'], $_POST['pwd']);
+    $user_id = $user->ID;
+
+    if (is_wp_error($user)) {
+      $render($first_phase, $user, $redirect_to, null, null);
+    }
+
+    if (twofa_user_activated($user->ID)) {
+      // If the user has 2fa activated, send them to phase 2
+
+      $first_phase = false;
+    } else {
+      // If the user has 2fa deactivated, log them in
+
+      $rememberme = isset($_POST['rememberme']);
+      wp_set_auth_cookie($user->ID, $rememberme);
+
+      $redirect($user);
+    }
+  }
+
+  // Phase 2
+
+  if (isset($_POST['token']) && isset($_POST['user_id']) && isset($_POST['nonce'])) {
+    $first_phase = false;
+
+    $user_id = absint($_POST['user_id']);
+
+    if ($user_id <= 0) {
+      wp_die('TODO: bad user_id');
+    }
+
+    if (!wp_verify_nonce($_POST['nonce'], '2fa_phase2_'.$user_id)) {
+      wp_die('TODO: invalid nonce');
+    }
+
+    if (!twofa_user_verify_token($user_id, $_POST['token'])) {
+      wp_die('TODO: invalid token');
+    }
+
+    $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
+    wp_set_auth_cookie($user_id, $rememberme);
+
+    $redirect(get_user_by('id', $user_id));
+  }
+
+  $render($first_phase, $errors, $redirect_to, null, $user_id);
   exit(0);
 });
