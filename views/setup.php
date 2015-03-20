@@ -32,7 +32,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <?php# explanation and stuff ?>
 
       <div ng-switch-default class="step">
-        <p>TODO: some explanation about what's about to happen goes here.</p>
+        <p>To increase the security on this blog 2 Factor Authentication has now been activated for your account. Please follow the steps to activate a device for 2 Factor Authentication.</p>
         <p><button class="button button-primary" ng-click="$parent.step = 1">Start setup</button></p>
       </div>
 
