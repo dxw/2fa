@@ -1,19 +1,23 @@
 <?php
 
-$redirect = function ($user) {
-  // Copied verbatim from wp-login.php
-
+$get_redirect_to = function ($user) {
   if ( isset( $_REQUEST['redirect_to'] ) ) {
     $redirect_to = $_REQUEST['redirect_to'];
-    // Redirect to https if user wants ssl
-    if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') )
-    $redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
+    // // Redirect to https if user wants ssl
+    // if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') ) {
+    //   $redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
+    // }
   } else {
     $redirect_to = admin_url();
   }
 
   $requested_redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
-  $redirect_to = apply_filters( 'login_redirect', $redirect_to, $requested_redirect_to, $user );
+  return apply_filters( 'login_redirect', $redirect_to, $requested_redirect_to, $user );
+};
+
+$redirect = function ($user) use ($get_redirect_to) {
+  $redirect_to = $get_redirect_to($user);
+  // Copied verbatim from wp-login.php
 
   if ( ( empty( $redirect_to ) || $redirect_to == 'wp-admin/' || $redirect_to == admin_url() ) ) {
     // If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.
@@ -29,12 +33,15 @@ $redirect = function ($user) {
   exit();
 };
 
-$render = function ($first_phase, $errors, $redirect_to, $rememberme, $user_id) {
+$render = function ($first_phase, $errors, $rememberme, $user_id) use ($get_redirect_to) {
+
   $user = get_user_by('id', $user_id);
   $user_login = '';
-  if (!is_wp_error($user)) {
+  if ($user !== false) {
     $user_login = $user->user_login;
   }
+
+  $redirect_to = $get_redirect_to($user);
 
   do_action( 'login_enqueue_scripts' );
   do_action( 'login_head' );
@@ -119,7 +126,7 @@ add_action('login_form_login', function () use ($redirect, $render) {
     $user_id = $user->ID;
 
     if (is_wp_error($user)) {
-      $render($first_phase, $user, $redirect_to, null, null);
+      $render($first_phase, $user, null, null);
     }
 
     if (twofa_user_activated($user->ID)) {
@@ -145,17 +152,17 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
     if ($user_id <= 0) {
       $errors->add('bad_user_id', __('An error occurred. Please try again.'));
-      $render(true, $errors, $redirect_to, null, null);
+      $render(true, $errors, null, null);
     }
 
     if (!wp_verify_nonce($_POST['nonce'], '2fa_phase2_'.$user_id)) {
       $errors->add('invalid_nonce', __('An error occurred. Please try again.'));
-      $render(true, $errors, $redirect_to, null, null);
+      $render(true, $errors, null, null);
     }
 
     if (!twofa_user_verify_token($user_id, $_POST['token'])) {
       $errors->add('invalid_token', __('Invalid token. Try again.'));
-      $render($first_phase, $errors, $redirect_to, null, $user_id);
+      $render($first_phase, $errors, null, $user_id);
     }
 
     $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
@@ -164,6 +171,6 @@ add_action('login_form_login', function () use ($redirect, $render) {
     $redirect(get_user_by('id', $user_id));
   }
 
-  $render($first_phase, $errors, $redirect_to, null, $user_id);
+  $render($first_phase, $errors, null, null);
   exit(0);
 });
