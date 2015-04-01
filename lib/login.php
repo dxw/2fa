@@ -151,7 +151,7 @@ add_action('login_form_login', function () use ($redirect, $render) {
     $user_id = absint($_POST['user_id']);
 
     if ($user_id <= 0) {
-      $errors->add('bad_user_id', __('An error occurred. Please try again.'));
+      $errors->add('bad_user_id', __('An error has occurred. Please try again.'));
       $render(true, $errors, null, null);
     }
 
