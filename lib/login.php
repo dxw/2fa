@@ -33,7 +33,8 @@ $redirect = function ($user) use ($get_redirect_to) {
   exit();
 };
 
-$render = function ($first_phase, $errors, $rememberme, $user_id) use ($get_redirect_to) {
+$render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_to) {
+  $first_phase = $phase === 1;
 
   $user = get_user_by('id', $user_id);
   $user_login = '';
@@ -116,23 +117,20 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
   $errors = new WP_Error;
 
-  $first_phase = true;
-
   // Phase 1
 
-  if ($first_phase && isset($_POST['log']) && isset($_POST['pwd'])) {
+  if (isset($_POST['log']) && isset($_POST['pwd'])) {
     // Verify credentials
     $user = wp_authenticate($_POST['log'], $_POST['pwd']);
-    $user_id = $user->ID;
 
     if (is_wp_error($user)) {
-      $render($first_phase, $user, null, null);
+      $render(1, $user, null, null);
     }
 
     if (twofa_user_activated($user->ID)) {
       // If the user has 2fa activated, send them to phase 2
 
-      $first_phase = false;
+      $render(2, null, null, $user->ID);
     } else {
       // If the user has 2fa deactivated, log them in
 
@@ -152,17 +150,17 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
     if ($user_id <= 0) {
       $errors->add('bad_user_id', __('An error has occurred. Please try again.'));
-      $render(true, $errors, null, null);
+      $render(1, $errors, null, null);
     }
 
     if (!wp_verify_nonce($_POST['nonce'], '2fa_phase2_'.$user_id)) {
       $errors->add('invalid_nonce', __('An error occurred. Please try again.'));
-      $render(true, $errors, null, null);
+      $render(1, $errors, null, null);
     }
 
     if (!twofa_user_verify_token($user_id, $_POST['token'])) {
       $errors->add('invalid_token', __('Invalid token. Try again.'));
-      $render($first_phase, $errors, null, $user_id);
+      $render(2, $errors, null, $user_id);
     }
 
     $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
@@ -171,6 +169,6 @@ add_action('login_form_login', function () use ($redirect, $render) {
     $redirect(get_user_by('id', $user_id));
   }
 
-  $render($first_phase, $errors, null, null);
+  $render(1, $errors, null, null);
   exit(0);
 });
