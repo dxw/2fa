@@ -1,5 +1,7 @@
 <?php
 
+// Gets the filtered value of the redirect_to parameter (string)
+// Taken from wp-login.php
 $get_redirect_to = function ($user) {
   if ( isset( $_REQUEST['redirect_to'] ) ) {
     $redirect_to = $_REQUEST['redirect_to'];
@@ -15,6 +17,8 @@ $get_redirect_to = function ($user) {
   return apply_filters( 'login_redirect', $redirect_to, $requested_redirect_to, $user );
 };
 
+// Uses wp_safe_redirect()
+// Taken from wp-login.php
 $redirect = function ($user) use ($get_redirect_to) {
   $redirect_to = $get_redirect_to($user);
   // Copied verbatim from wp-login.php
@@ -33,6 +37,7 @@ $redirect = function ($user) use ($get_redirect_to) {
   exit();
 };
 
+// Renders the HTML of the login form
 $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_to) {
   $first_phase = $phase === 1;
 
@@ -83,8 +88,6 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
 
   } else {
     // Phase 2 - token input
-
-    //TODO: nonces are proprably inappropriate for this task
     ?>
 
     <form method="POST" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')) ?>" id="loginform" name="loginform">
@@ -112,7 +115,7 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
   exit(0);
 };
 
-// Show our own login form
+// Replaces the stock WordPress login form with our own
 add_action('login_form_login', function () use ($redirect, $render) {
 
   $errors = new WP_Error;

@@ -22,7 +22,7 @@ add_action('manage_sites_custom_column', function ($column_name, $blawg_id) {
   }
 }, 10, 2);
 
-// Enabled/disabled status option
+// Enabled/disabled option
 
 add_action('wpmueditblogaction', function ($id) {
   ?>
@@ -35,7 +35,8 @@ add_action('wpmueditblogaction', function ($id) {
   <?php
 });
 
-// Fired after nonce checks
+// Update the blog option
+// Action is fired after nonce checks
 add_action('wpmu_update_blog_options', function () {
   if (isset($_POST['2fa_enabled']) && $_POST['2fa_enabled'] === 'yes') {
     update_option('2fa_enabled', 'yes');

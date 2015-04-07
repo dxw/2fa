@@ -1,6 +1,6 @@
 <?php
 
-
+// Adds JS/CSS to the admin header
 add_action('admin_enqueue_scripts', function () {
   // using v1.2 because v1.3 drops support for IE8
   wp_register_script('angularjs', plugin_dir_url(__DIR__).'build/bower_components/angular/angular.min.js');

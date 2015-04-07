@@ -1,5 +1,6 @@
 <?php
 
+// Add the page to the menu, output the appropriate templates
 add_action('admin_menu', function () {
   add_users_page('2 Factor Authentication', '2FA', 'read', '2fa', function () {
     ?>

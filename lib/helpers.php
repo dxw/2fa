@@ -1,5 +1,6 @@
 <?php
 
+// Get the 2fa_override option (yes/no/default)
 function twofa_user_override($user_id) {
   $enabled = get_user_meta($user_id, '2fa_override', true);
 
@@ -12,10 +13,12 @@ function twofa_user_override($user_id) {
   return 'default';
 }
 
+// Get whether a blog has 2fa enabled (bool)
 function twofa_blog_enabled($blawg_id) {
     return get_blog_option($blawg_id, '2fa_enabled') === 'yes';
 }
 
+// Get whether a user has 2fa enabled (bool - based on values of twofa_user_override() and twofa_blog_enabled())
 function twofa_user_enabled($user_id) {
   $override = twofa_user_override($user_id);
 
@@ -34,6 +37,7 @@ function twofa_user_enabled($user_id) {
   return false;
 }
 
+// How many devices a user has 2fa enabled on (int)
 function twofa_user_activated($user_id) {
   if (!twofa_user_enabled($user_id)) {
     return 0;
@@ -42,6 +46,7 @@ function twofa_user_activated($user_id) {
   return count(twofa_user_devices($user_id));
 }
 
+// Return the value of 2fa_devices minus the secrets (array of arrays)
 function twofa_user_devices($user_id) {
   $_devices = get_user_meta($user_id, '2fa_devices', true);
   $devices = [];
@@ -58,6 +63,8 @@ function twofa_user_devices($user_id) {
   return $devices;
 }
 
+// Checks if a token is valid for a user (bool)
+// Used during the login process, checks against all devices and the blacklist
 function twofa_user_verify_token($user_id, $token) {
   if (twofa_token_blacklist($token)) {
     return false;
@@ -76,19 +83,20 @@ function twofa_user_verify_token($user_id, $token) {
   return false;
 }
 
+// Outputs the given value as JSON, exits afterwards
 function twofa_json($data) {
   header('Content-Type: application/json');
   echo json_encode($data);
   exit(0);
 }
 
+// Checks if a token is valid for a base32-encoded secret (bool)
 function twofa_verify_token($secret, $token) {
   $otp = new \Otp\Otp();
   return $otp->checkTotp(\Base32\Base32::decode($secret), $token, TWOFA_WINDOW);
 }
 
 // Stores a token in the blacklist and returns true if the token was already in the blacklist
-//TODO: this function is a potential source of race conditions
 function twofa_token_blacklist($token) {
   // Retrieve blacklist
   $blacklist = get_site_option('2fa_token_blacklist');

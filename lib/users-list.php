@@ -1,5 +1,7 @@
 <?php
 
+// Display the user's enabled/activated status on the user list
+
 add_filter('wpmu_users_columns', function ($columns) {
   $columns['2fa'] = '2FA';
   return $columns;
