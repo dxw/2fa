@@ -12,7 +12,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
   ?>
   <div ng-app="2fa" id="ng-app" ng-controller="Setup" class="twofa-setup">
-    <?php# templates ?>
+    <?php # templates ?>
 
     <script type="text/ng-template" id="/current-step.html">
       <ol class="position">
@@ -20,23 +20,23 @@ if (!twofa_user_enabled(get_current_user_id())) {
       </ol>
     </script>
 
-    <?php# data ?>
+    <?php # data ?>
 
     <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
     <input type="hidden" id="2fa_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_verify')) ?>">
 
-    <?php# steps ?>
+    <?php # steps ?>
 
     <div ng-switch on="step">
 
-      <?php# explanation and stuff ?>
+      <?php # explanation and stuff ?>
 
       <div ng-switch-default class="step">
         <p>To increase the security on this blog 2 Factor Authentication has now been activated for your account. Please follow the steps to activate a device for 2 Factor Authentication.</p>
         <p><button class="button button-primary" ng-click="$parent.step = 1">Start setup</button></p>
       </div>
 
-      <?php# STEP 1 ?>
+      <?php # STEP 1 ?>
 
       <div ng-switch-when="1" class="step">
         <div ng-include src="'/current-step.html'"></div>
@@ -70,7 +70,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         <p><button class="button button-primary" ng-click="$parent.step = 2" ng-disabled="$parent.mode === undefined">Next</button></p>
       </div>
 
-      <?php# STEP 2 ?>
+      <?php # STEP 2 ?>
 
       <div ng-switch-when="2" class="step">
         <div ng-switch on="$parent.mode">
@@ -98,7 +98,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         </div>
       </div>
 
-      <?php# STEP 3 ?>
+      <?php # STEP 3 ?>
 
       <div ng-switch-when="3" class="step">
         <div ng-switch on="$parent.mode">
@@ -135,7 +135,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         </div>
       </div>
 
-      <?php# finished ?>
+      <?php # finished ?>
 
       <div ng-switch-when="4" class="step">
         <p>Finished!</p>
