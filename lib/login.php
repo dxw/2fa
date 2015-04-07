@@ -147,8 +147,6 @@ add_action('login_form_login', function () use ($redirect, $render) {
   // Phase 2
 
   if (isset($_POST['token']) && isset($_POST['user_id']) && isset($_POST['nonce'])) {
-    $first_phase = false;
-
     $user_id = absint($_POST['user_id']);
 
     if ($user_id <= 0) {
@@ -161,8 +159,19 @@ add_action('login_form_login', function () use ($redirect, $render) {
       $render(1, $errors, null, null);
     }
 
-    if (!twofa_user_verify_token($user_id, $_POST['token'])) {
+    $token = preg_replace('_[^0-9]_', '', $_POST['token']);
+    if (!twofa_user_verify_token($user_id, $token)) {
       $errors->add('invalid_token', __('Invalid token. Try again.'));
+
+      // Report failed login attempt
+      $ip = $_SERVER['REMOTE_ADDR'];
+      $user = get_user_by('id', $user_id);
+      $user_login = '';
+      if ($user !== false) {
+        $user_login = $user->user_login;
+      }
+      trigger_error('IP address "'.$ip.'" attempted to log in as "'.$user_login.'" with a valid password but an invalid TOTP token "'.$token.'"', E_USER_WARNING);
+
       $render(2, $errors, null, $user_id);
     }
 
