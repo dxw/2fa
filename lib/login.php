@@ -164,13 +164,7 @@ add_action('login_form_login', function () use ($redirect, $render) {
       $errors->add('invalid_token', __('Invalid token. Try again.'));
 
       // Report failed login attempt
-      $ip = $_SERVER['REMOTE_ADDR'];
-      $user = get_user_by('id', $user_id);
-      $user_login = '';
-      if ($user !== false) {
-        $user_login = $user->user_login;
-      }
-      trigger_error('IP address "'.$ip.'" attempted to log in as "'.$user_login.'" with a valid password but an invalid TOTP token "'.$token.'"', E_USER_WARNING);
+      twofa_log_failure('TOTP', $user_id, $token);
 
       $render(2, $errors, null, $user_id);
     }

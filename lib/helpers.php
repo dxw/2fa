@@ -127,3 +127,15 @@ function twofa_token_blacklist($token) {
 
   return $return;
 }
+
+function twofa_log_failure($mode, $user_id, $token) {
+  $ip = $_SERVER['REMOTE_ADDR'];
+
+  $user = get_user_by('id', $user_id);
+  $user_login = '';
+  if ($user !== false) {
+    $user_login = $user->user_login;
+  }
+
+  trigger_error('IP address "'.$ip.'" attempted to log in as "'.$user_login.'" with a valid password but an invalid "'.$mode.'" token "'.$token.'"', E_USER_WARNING);
+}
