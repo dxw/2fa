@@ -20,6 +20,21 @@ $get_redirect_to = function ($user) {
 // Uses wp_safe_redirect()
 // Taken from wp-login.php
 $redirect = function ($user) use ($get_redirect_to) {
+  global $interim_login;
+
+  if ($interim_login) {
+    $message = '<p class="message">' . __('You have logged in successfully.') . '</p>';
+    $interim_login = 'success';
+    login_header( '', $message );
+    ?>
+    <?php
+    do_action( 'login_footer' );
+    ?>
+    </body></html>
+    <?php
+    exit;
+  }
+
   $redirect_to = $get_redirect_to($user);
   // Copied verbatim from wp-login.php
 
@@ -39,6 +54,8 @@ $redirect = function ($user) use ($get_redirect_to) {
 
 // Renders the HTML of the login form
 $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_to) {
+  global $interim_login;
+
   $first_phase = $phase === 1;
 
   $user = get_user_by('id', $user_id);
@@ -79,7 +96,11 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
       <p class="forgetmenot"><label for="rememberme"><input name="rememberme" type="checkbox" id="rememberme" value="forever" <?php checked($rememberme); ?>> <?php esc_attr_e('Remember Me') ?></label></p>
       <p class="submit">
         <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Log In'); ?>">
-        <input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_to); ?>">
+        <?php if ($interim_login) : ?>
+          <input type="hidden" name="interim-login" value="1">
+        <?php else : ?>
+          <input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_to); ?>">
+        <?php endif ?>
         <input type="hidden" name="testcookie" value="1">
       </p>
     </form>
@@ -117,6 +138,11 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
 
 // Replaces the stock WordPress login form with our own
 add_action('login_form_login', function () use ($redirect, $render) {
+  global $interim_login;
+
+  // An interim login is where you're in the middle of editing a post and you get logged out
+  // An interim login prompt appears and asks you to sign in again
+  $interim_login = isset($_REQUEST['interim-login']);
 
   $errors = new WP_Error;
 
