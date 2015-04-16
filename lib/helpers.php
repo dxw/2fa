@@ -146,3 +146,17 @@ function twofa_log_failure($mode, $user_id, $token) {
 
   trigger_error('IP address "'.$ip.'" attempted to log in as "'.$user_login.'" with a valid password but an invalid "'.$mode.'" token "'.$token.'"', E_USER_WARNING);
 }
+
+// Generate shared secret (16 digit base32)
+function twofa_generate_secret() {
+  $digits = 16;
+
+  $secret = '';
+
+  // We can't just generate the secret number and convert it to base32 because 32**16 > PHP_INT_MAX
+  for ($i = 0; $i < $digits; $i++) {
+    $secret .= base_convert((string)wp_rand(0, 31), 10, 32);
+  }
+
+  return $secret;
+}
