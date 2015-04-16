@@ -85,6 +85,13 @@ function twofa_user_verify_token($user_id, $token) {
 
 // Outputs the given value as JSON, exits afterwards
 function twofa_json($data) {
+  if (isset($data['error']) && $data['error']) {
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $user_login = wp_get_current_user()->user_login;
+
+    trigger_error('Unexpected error during 2FA setup. IP: "'.$ip.'" User: "'.$user_login.'" Error data: '.json_encode($data), E_USER_WARNING);
+  }
+
   header('Content-Type: application/json');
   echo json_encode($data);
   exit(0);
