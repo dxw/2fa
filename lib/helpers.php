@@ -149,13 +149,14 @@ function twofa_log_failure($mode, $user_id, $token) {
 
 // Generate shared secret (16 digit base32)
 function twofa_generate_secret() {
+  $base32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
   $digits = 16;
 
   $secret = '';
 
   // We can't just generate the secret number and convert it to base32 because 32**16 > PHP_INT_MAX
   for ($i = 0; $i < $digits; $i++) {
-    $secret .= base_convert((string)wp_rand(0, 31), 10, 32);
+    $secret .= substr($base32, wp_rand(0, 31), 1);
   }
 
   return $secret;
