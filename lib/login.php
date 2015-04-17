@@ -119,7 +119,7 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
           <input type="text" name="token" id="token" class="input" size="20" autofocus>
         </label>
       </p>
-      <?php do_action( 'login_form' ) ?>
+      <?php do_action( '2fa_login_form_second_factor' ) ?>
       <p class="submit">
         <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Verify'); ?>">
         <input type="hidden" name="user_id" value="<?php echo esc_attr(absint($user_id)) ?>">
