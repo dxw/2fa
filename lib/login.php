@@ -129,6 +129,11 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
         <input type="hidden" name="user_id" value="<?php echo esc_attr(absint($user_id)) ?>">
         <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('2fa_phase2_'.$user_id)) ?>">
         <input type="hidden" name="rememberme" value="<?php echo isset($_POST['rememberme']) ? 'yes' : 'no' ?>">
+        <?php if ($interim_login) : ?>
+          <input type="hidden" name="interim-login" value="1">
+        <?php else : ?>
+          <input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_to); ?>">
+        <?php endif ?>
       </p>
     </form>
 
