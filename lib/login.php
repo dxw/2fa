@@ -120,8 +120,10 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
         </label>
       </p>
 
-      <div class="g-recaptcha" data-sitekey="<?php echo esc_attr(RECAPTCHA_PUBLIC_KEY) ?>"></div>
-      <script type="text/javascript" src="https://www.google.com/recaptcha/api.js?hl=en"></script>
+      <?php if (twofa_bruteforce_login_show_captcha($user_id)) : ?>
+        <div class="g-recaptcha" data-sitekey="<?php echo esc_attr(RECAPTCHA_PUBLIC_KEY) ?>"></div>
+        <script type="text/javascript" src="https://www.google.com/recaptcha/api.js?hl=en"></script>
+      <?php endif ?>
 
       <?php do_action( '2fa_login_form_second_factor' ) ?>
       <p class="submit">
@@ -189,11 +191,13 @@ add_action('login_form_login', function () use ($redirect, $render) {
       $render(1, $errors, null, null);
     }
 
-    $recaptcha = new \ReCaptcha\ReCaptcha(RECAPTCHA_PRIVATE_KEY);
-    $resp = $recaptcha->verify(stripslashes($_POST['g-recaptcha-response']), $_SERVER['REMOTE_ADDR']);
-    if (!$resp->isSuccess()) {
-      $errors->add('invalid_captcha', __('Invalid CAPTCHA. Try again.'));
-      $render(2, $errors, null, $user_id);
+    if (twofa_bruteforce_login_show_captcha($user_id)) {
+      $recaptcha = new \ReCaptcha\ReCaptcha(RECAPTCHA_PRIVATE_KEY);
+      $resp = $recaptcha->verify(stripslashes($_POST['g-recaptcha-response']), $_SERVER['REMOTE_ADDR']);
+      if (!$resp->isSuccess()) {
+        $errors->add('invalid_captcha', __('Invalid CAPTCHA. Try again.'));
+        $render(2, $errors, null, $user_id);
+      }
     }
 
     if (!wp_verify_nonce($_POST['nonce'], '2fa_phase2_'.$user_id)) {
@@ -207,12 +211,16 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
       // Report failed login attempt
       twofa_log_failure('TOTP', $user_id, $token);
+      twofa_bruteforce_login_failure($user_id);
 
       $render(2, $errors, null, $user_id);
     }
 
     $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
     wp_set_auth_cookie($user_id, $rememberme);
+
+    // Reset captcha
+    twofa_bruteforce_login_success($user_id);
 
     $redirect(get_user_by('id', $user_id));
   }

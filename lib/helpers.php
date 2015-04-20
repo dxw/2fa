@@ -135,6 +135,7 @@ function twofa_token_blacklist($token) {
   return $return;
 }
 
+// Output a warning
 function twofa_log_failure($mode, $user_id, $token) {
   $ip = $_SERVER['REMOTE_ADDR'];
 
@@ -160,4 +161,24 @@ function twofa_generate_secret() {
   }
 
   return $secret;
+}
+
+// This should be run when a user successfully logs in
+// It resets the count of failed attempts and thus resets the captcha
+function twofa_bruteforce_login_success($user_id) {
+  update_user_meta($user_id, '2fa_bruteforce_failed_attempts', 0);
+}
+
+// This should be run when a user unsuccessfully logs in
+// It increments the count of failed attempts and thus eventually makes a captcha appear
+function twofa_bruteforce_login_failure($user_id) {
+  update_user_meta($user_id, '2fa_bruteforce_failed_attempts', twofa_bruteforce_login_failures($user_id) + 1);
+}
+
+function twofa_bruteforce_login_show_captcha($user_id) {
+  return twofa_bruteforce_login_failures($user_id) >= 5;
+}
+
+function twofa_bruteforce_login_failures($user_id) {
+  return absint(get_user_meta($user_id, '2fa_bruteforce_failed_attempts', true));
 }
