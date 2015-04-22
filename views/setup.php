@@ -42,12 +42,14 @@ if (!twofa_user_enabled(get_current_user_id())) {
                 smartphone or tablet (download and use an app to log in)
               </label>
               <div ng-show="$parent.mode === 'totp'">
-                <p>Please install the app before proceeding to the next step:</p>
+                <p>Go to the app store on your device and install the app before proceeding to the next step:</p>
+
                 <ul>
-                  <li>Android: <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">Google Authenticator</a></li>
+                  <li>Android: <a target="_blank" href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">Google Authenticator</a></li>
                   <li>BlackBerry: to install Google Authenticator open the web browser on your device and visit <code>m.google.com/authenticator</code></li>
-                  <li>iPhone: <a href="https://itunes.apple.com/us/app/google-authenticator/id388497605">Google Authenticator</a></li>
-                  <li>Windows Phone: <a href="http://www.windowsphone.com/en-us/store/app/authenticator/e7994dbc-2336-4950-91ba-ca22d653759b">Microsoft Authenticator</a></li>
+                  <li>BlackBerry (smartphone): <a target="_blank" href="https://appworld.blackberry.com/webstore/content/29401059/?countrycode=US&amp;countrycode=US&amp;lang=en">2 Steps Authenticator</a>
+                  <li>iPhone: <a target="_blank" href="https://itunes.apple.com/us/app/google-authenticator/id388497605">Google Authenticator</a></li>
+                  <li>Windows Phone: <a target="_blank" href="http://www.windowsphone.com/en-us/store/app/authenticator/e7994dbc-2336-4950-91ba-ca22d653759b">Microsoft Authenticator</a></li>
                 </ul>
               </div>
             </div>
@@ -72,7 +74,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
               <p>Generating secret...</p>
             </div>
             <div ng-show="$parent.totp_secret">
-              <p><img src="<?php echo esc_attr(get_admin_url(null, 'admin-ajax.php?action=2fa_qr')) ?>&cache={{$parent.rand()}}"></p>
+              <p><img src="<?php echo esc_attr(get_admin_url(null, 'admin-ajax.php?action=2fa_qr')) ?>&amp;cache={{$parent.rand()}}"></p>
               <p><span ng-click="text = 1">Can't scan it? Show the text instead</span></p>
               <div ng-show="text">
                 <p>Set up a new account using the "time based" option and enter this code (case insensitive, spaces optional): <code>{{$parent.prettyPrintSecret($parent.totp_secret)}}</code></p>
