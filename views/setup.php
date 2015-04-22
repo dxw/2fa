@@ -115,7 +115,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
                 <p>Verifying...</p>
               </div>
               <div ng-switch-when="invalid">
-                <p>Invalid! Please try again, or click "go back" and scan the secret into your app again.</p>
+                <p>Invalid! Please try again, or click ‘go back’ and scan the barcode or enter the key into your app again.</p>
               </div>
               <div ng-switch-when="valid">
                 <p>Valid!</p>
