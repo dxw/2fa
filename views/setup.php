@@ -12,14 +12,6 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
   ?>
   <div ng-app="2fa" id="ng-app" ng-controller="Setup" class="twofa-setup">
-    <?php # templates ?>
-
-    <script type="text/ng-template" id="/current-step.html">
-      <ol class="position">
-        <li ng-repeat="i in [1,2,3]" ng-class="{current: i===step}">{{i}}</li>
-      </ol>
-    </script>
-
     <?php # data ?>
 
     <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
@@ -40,14 +32,14 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <?php # STEP 1 ?>
 
       <div ng-switch-when="1" class="step">
-        <div ng-include src="'/current-step.html'"></div>
-        <p>What kind of device do you have?</p>
+        <p>What kind of device are you using?</p>
+
         <ul>
           <li>
             <div>
               <label>
                 <input type="radio" name="2fa_setup_device" value="totp" ng-model="$parent.mode">
-                Smartphone (use an app to log in)
+                smartphone or tablet (download and use an app to log in)
               </label>
               <div ng-show="$parent.mode === 'totp'">
                 <p>Please install the app before proceeding to the next step:</p>
@@ -63,7 +55,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
           <li>
             <label>
               <input type="radio" name="2fa_setup_device" value="sms" ng-model="$parent.mode">
-              Other mobile (log in with a text message)
+              other mobile (log in with a text message)
             </label>
           </li>
         </ul>
@@ -76,7 +68,6 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <div ng-switch-when="2" class="step">
         <div ng-switch on="$parent.mode">
           <div ng-switch-when="totp">
-            <div ng-include src="'/current-step.html'"></div>
             <div ng-show="!$parent.totp_secret">
               <p>Generating secret...</p>
             </div>
@@ -92,7 +83,6 @@ if (!twofa_user_enabled(get_current_user_id())) {
             </div>
           </div>
           <div ng-switch-when="sms">
-            <div ng-include src="'/current-step.html'"></div>
             <p>TODO: SMS activation not implemented yet</p>
             <p><button class="button" ng-click="$parent.$parent.step = 1">Go back</button></p>
           </div>
@@ -104,7 +94,6 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <div ng-switch-when="3" class="step">
         <div ng-switch on="$parent.mode">
           <div ng-switch-when="totp">
-            <div ng-include src="'/current-step.html'"></div>
 
             <label>
               Please enter the code that appears in the app:
@@ -129,7 +118,6 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
           </div>
           <div ng-switch-when="sms">
-            <div ng-include src="'/current-step.html'"></div>
             <p>TODO: SMS activation not implemented yet</p>
             <p><button class="button" ng-click="$parent.$parent.step = 2">Go back</button></p>
           </div>
