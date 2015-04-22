@@ -13,7 +13,8 @@ if (isset($_POST['device_id'])) {
   update_user_meta(get_current_user_id(), '2fa_devices', $new_devices);
 
   ?>
-  <p>The device has been deactivated.</p>
+  <p>The device has been deactivated. Make sure you delete the account from your authenticator app.</p>
+  <p>Return to your <a href="profile.php?page=2fa">2 factor authentication homepage</a>.</p>
   <?php
 
 } else {
