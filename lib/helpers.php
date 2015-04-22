@@ -46,7 +46,7 @@ function twofa_user_activated($user_id) {
   return count(twofa_user_devices($user_id));
 }
 
-// Return the value of 2fa_devices minus the secrets (array of arrays)
+// Return the value of 2fa_devices (array of arrays)
 function twofa_user_devices($user_id) {
   $_devices = get_user_meta($user_id, '2fa_devices', true);
   $devices = [];
@@ -56,6 +56,7 @@ function twofa_user_devices($user_id) {
       $devices[] = [
         'id' => $k+1,
         'mode' => $dev['mode'],
+        'secret' => $dev['secret'],
       ];
     }
   }
