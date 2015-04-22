@@ -137,7 +137,8 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
       <div ng-switch-when="4" class="step">
         <p>Finished!</p>
-        <p>Thank you for taking the time to improve the security of <?php echo esc_html(get_bloginfo('name')) ?>.</p>
+        <p>You can now go to your blog <a href="index.php">dashboard</a>.</p>
+        <p>Go to your <a href="profile.php?page=2fa">2 factor authentication homepage</a> to view your activated devices or activate a new device.</a>
       </div>
 
       <div ng-switch-when="3.14159265">
