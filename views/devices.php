@@ -11,22 +11,24 @@ if (!twofa_user_enabled(get_current_user_id())) {
 } else {
   $devices = twofa_user_devices(get_current_user_id());
   ?>
+
+  <p>Your activated devices</p>
+
   <table>
     <thead>
-      <tr><th>Device ID</th><th>Type</th><th>Actions</th></tr>
+      <tr><th>Device</th><th>Action</th></tr>
     </thead>
     <tbody>
       <?php foreach ($devices as $device) : ?>
         <tr>
           <td><?php echo esc_html($device['id']) ?></td>
-          <td><?php echo esc_html($device['mode']) ?></td>
           <td><a href="?page=2fa&step=deactivate&device_id=<?php echo esc_attr($device['id']) ?>">Deactivate</a></td>
         </tr>
       <?php endforeach ?>
     </tbody>
   </table>
 
-  <p>You are using <?php echo sprintf(_n('%d of %d allowed device', '%d of %d allowed devices', TWOFA_MAX_DEVICES), count($devices), TWOFA_MAX_DEVICES) ?>.</p>
+  <p>You have activated <?php echo sprintf(_n('%d of %d allowed device', '%d of %d allowed devices', TWOFA_MAX_DEVICES), count($devices), TWOFA_MAX_DEVICES) ?>.</p>
   <?php if (count($devices) < TWOFA_MAX_DEVICES) : ?>
     <p>You may <a href="?page=2fa&step=setup">activate another</a>.</p>
   <?php endif ?>
