@@ -13,7 +13,8 @@ if (isset($_POST['device_id'])) {
   update_user_meta(get_current_user_id(), '2fa_devices', $new_devices);
 
   ?>
-  <p>The device has been deactivated.</p>
+  <p>The device has been deactivated. Make sure you delete the account from your authenticator app.</p>
+  <p>Return to your <a href="profile.php?page=2fa">2 factor authentication homepage</a>.</p>
   <?php
 
 } else {
@@ -38,10 +39,13 @@ if (isset($_POST['device_id'])) {
     <?php
   } elseif (count($devices) < 2) {
     ?>
-    <p>You cannot get rid of your only device. Activate another first.</p>
+    <p>You can’t deactivate your only device. <a href="profile.php?page=2fa&amp;step=setup">Activate another first</a>.</p>
+    <p>Or return to your <a href="profile.php?page=2fa">2 factor authentication homepage</a>.</p>
     <?php
   } else {
     ?>
+    <!-- TODO -->
+    <!-- Are you sure you want to deactivate your Android device? -->
     <p>Are you sure you want to deactivate device with ID <?php echo esc_html($id) ?>?</p>
     <p>You won't be able to use it to log in with from now on.</p>
     <form method="POST">

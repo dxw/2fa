@@ -114,7 +114,7 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
     <form method="POST" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')) ?>" id="loginform" name="loginform">
       <p>
         <label for="token">
-          <?php _e('Enter the token shown on your device') ?>
+          <?php _e('Open the authenticator app on your device and enter the code shown') ?>
           <br>
           <input type="text" name="token" id="token" class="input" size="20" autofocus>
         </label>
@@ -207,7 +207,7 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
     $token = preg_replace('_[^0-9]_', '', $_POST['token']);
     if (!twofa_user_verify_token($user_id, $token)) {
-      $errors->add('invalid_token', __('Invalid token. Try again.'));
+      $errors->add('invalid_token', __('Invalid code. Try again. Make sure you’re using one of your activated devices.'));
 
       // Report failed login attempt
       twofa_log_failure('TOTP', $user_id, $token);
