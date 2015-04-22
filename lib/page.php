@@ -6,7 +6,7 @@ add_action('admin_menu', function () {
     ?>
 
     <div class="wrap">
-      <h2>2 Factor Authentication</h2>
+      <h2>2 factor authentication</h2>
 
       <?php
       if (isset($_GET['step']) && $_GET['step'] === 'setup') {
