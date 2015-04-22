@@ -207,7 +207,7 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
     $token = preg_replace('_[^0-9]_', '', $_POST['token']);
     if (!twofa_user_verify_token($user_id, $token)) {
-      $errors->add('invalid_token', __('Invalid token. Try again.'));
+      $errors->add('invalid_token', __('Invalid code. Try again. Make sure you’re using one of your activated devices.'));
 
       // Report failed login attempt
       twofa_log_failure('TOTP', $user_id, $token);
