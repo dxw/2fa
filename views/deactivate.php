@@ -38,7 +38,8 @@ if (isset($_POST['device_id'])) {
     <?php
   } elseif (count($devices) < 2) {
     ?>
-    <p>You cannot get rid of your only device. Activate another first.</p>
+    <p>You can’t deactivate your only device. <a href="profile.php?page=2fa&amp;step=setup">Activate another first</a>.</p>
+    <p>Or return to your <a href="profile.php?page=2fa">2 factor authentication homepage</a>.</p>
     <?php
   } else {
     ?>
