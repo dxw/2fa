@@ -2,7 +2,8 @@
 
 $devices = twofa_user_devices(get_current_user_id());
 
-if (isset($_POST['device_id'])) {
+if (isset($_POST['device_id']) && wp_verify_nonce($_POST['_wpnonce'], '2fa_deactivate-'.absint($_POST['device_id']))) {
+
   $id = absint($_POST['device_id']);
   $new_devices = [];
   foreach ($devices as $device) {
