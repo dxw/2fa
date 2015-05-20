@@ -21,7 +21,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
     <tbody>
       <?php foreach ($devices as $device) : ?>
         <tr>
-          <td><?php echo esc_html($device['id']) ?></td>
+          <td><?php echo esc_html($device['name']) ?></td>
           <td><a href="?page=2fa&step=deactivate&device_id=<?php echo esc_attr($device['id']) ?>">Deactivate</a></td>
         </tr>
       <?php endforeach ?>
