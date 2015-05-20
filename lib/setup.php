@@ -24,10 +24,17 @@ add_action('wp_ajax_2fa_generate_secret', function () {
 // Checks that the token given by the user is valid according to 2fa_temporary_secret
 // Then promotes the temporary value (2fa_temporary_secret) to permanent (2fa_devices) and removes the temporary value
 add_action('wp_ajax_2fa_verify', function () {
-  if (!isset($_POST['nonce']) || !isset($_POST['token']) || !wp_verify_nonce($_POST['nonce'], '2fa_verify')) {
+  if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], '2fa_verify')) {
     twofa_json([
       'error' => true,
       'reason' => 'invalid nonce',
+    ]);
+  }
+
+  if (empty($_POST['token']) || empty($_POST['deviceName'])) {
+    twofa_json([
+      'error' => true,
+      'reason' => 'missing values',
     ]);
   }
 
@@ -35,7 +42,7 @@ add_action('wp_ajax_2fa_verify', function () {
   $secret = get_user_meta(get_current_user_id(), '2fa_temporary_secret', true);
 
   // Verify it
-  $valid = twofa_verify_token($secret, $_POST['token']);
+  $valid = twofa_verify_token($secret, stripslashes($_POST['token']));
 
   if (!$valid) {
     twofa_json([
@@ -55,6 +62,7 @@ add_action('wp_ajax_2fa_verify', function () {
   }
   $devices[] = [
     'mode' => 'totp',
+    'name' => stripslashes($_POST['deviceName']),
     'secret' => $secret,
   ];
 

@@ -101,14 +101,20 @@ if (!twofa_user_enabled(get_current_user_id())) {
         <div ng-switch on="$parent.mode">
           <div ng-switch-when="totp">
 
-            <!-- TODO -->
-            <!-- Give your device a name that you can later use to identify it: [box to enter name] -->
+            <p>
+              <label>
+                Give your device a name that you can later use to identify it:
+                <input type="text" ng-model="device_name" ng-disabled="$parent.verification === 'valid'" autofocus>
+              </label>
+            </p>
 
-            <label>
-              Please enter the code that appears in the app:
-              <input type="text" ng-model="token" ng-disabled="$parent.verification === 'valid'" autofocus>
-            </label>
-            <button class="button" ng-click="$parent.verify(token)" ng-disabled="token.length !== 6 || $parent.verification === 'verifying' || $parent.verification === 'valid'">Verify</button>
+            <p>
+              <label>
+                Please enter the code that appears in the app:
+                <input type="text" ng-model="token" ng-disabled="$parent.verification === 'valid'">
+              </label>
+              <button class="button" ng-click="$parent.verify(token, device_name)" ng-disabled="device_name.length === 0 || token.length !== 6 || $parent.verification === 'verifying' || $parent.verification === 'valid'">Verify</button>
+            </p>
 
             <div ng-switch on="$parent.verification">
               <div ng-switch-when="verifying">
