@@ -2,15 +2,15 @@ module.exports = function (grunt) {
     'use strict';
 
     grunt.initConfig({
-        copy: {                                                                                                    
-            bower: {                                                                                               
-                files: [                                                                                           
-                    {                                                                                              
-                        src: [                                                                                     
-                            'bower_components/angular/angular.min.js',                                             
-                        ],                                                                                         
-                        dest: 'build/',                                                                            
-                    },                                                                                             
+        copy: {
+            bower: {
+                files: [
+                    {
+                        src: [
+                            'bower_components/angular/angular.min.js',
+                        ],
+                        dest: 'build/',
+                    },
                 ],
             },
         },

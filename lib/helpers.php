@@ -33,7 +33,7 @@ function twofa_user_enabled($user_id) {
       return true;
     }
   }
-  
+
   return false;
 }
 
