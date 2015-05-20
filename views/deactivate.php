@@ -28,6 +28,7 @@ if (isset($_POST['device_id'])) {
     foreach ($devices as $device) {
       if ($device['id'] === $id) {
         $missing_device = false;
+        $name = $device['name'];
         break;
       }
     }
@@ -44,9 +45,7 @@ if (isset($_POST['device_id'])) {
     <?php
   } else {
     ?>
-    <!-- TODO -->
-    <!-- Are you sure you want to deactivate your Android device? -->
-    <p>Are you sure you want to deactivate device with ID <?php echo esc_html($id) ?>?</p>
+    <p>Are you sure you want to deactivate your <strong><?php echo esc_html($name) ?></strong> device?</p>
     <p>You won't be able to use it to log in with from now on.</p>
     <form method="POST">
       <?php wp_nonce_field('2fa_deactivate-'.$id) ?>
