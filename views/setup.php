@@ -26,7 +26,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <div ng-switch-default class="step">
         <p>To increase the security on this blog 2 factor authentication (also known as 2-step verification) has now been enabled for your account. Please follow the steps to activate a device for 2 factor authentication.</p>
 
-        <p><button class="button button-primary" ng-click="$parent.step = 1">Start activation</button></p>
+        <p><button class="button button-primary" ng-click="$root.step = 1">Start activation</button></p>
       </div>
 
       <?php # STEP 1 ?>
@@ -38,10 +38,10 @@ if (!twofa_user_enabled(get_current_user_id())) {
           <li>
             <div>
               <label>
-                <input type="radio" name="2fa_setup_device" value="totp" ng-model="$parent.mode">
+                <input type="radio" name="2fa_setup_device" value="totp" ng-model="$root.mode">
                 smartphone or tablet (download and use an app to log in)
               </label>
-              <div ng-show="$parent.mode === 'totp'">
+              <div ng-show="$root.mode === 'totp'">
                 <p>Go to the app store on your device and install the app before proceeding to the next step:</p>
 
                 <ul>
@@ -56,41 +56,41 @@ if (!twofa_user_enabled(get_current_user_id())) {
           </li>
           <li>
             <label>
-              <input type="radio" name="2fa_setup_device" value="sms" ng-model="$parent.mode">
+              <input type="radio" name="2fa_setup_device" value="sms" ng-model="$root.mode">
               other mobile (log in with a text message)
             </label>
           </li>
         </ul>
 
-        <p><button class="button button-primary" ng-click="$parent.step = 2" ng-disabled="$parent.mode === undefined">Next</button></p>
+        <p><button class="button button-primary" ng-click="$root.step = 2" ng-disabled="$root.mode === undefined">Next</button></p>
       </div>
 
       <?php # STEP 2 ?>
 
       <div ng-switch-when="2" class="step">
-        <div ng-switch on="$parent.mode">
+        <div ng-switch on="$root.mode">
           <div ng-switch-when="totp">
-            <div ng-show="!$parent.totp_secret">
+            <div ng-show="!$root.totp_secret">
               <p>Generating secret...</p>
             </div>
-            <div ng-show="$parent.totp_secret">
+            <div ng-show="$root.totp_secret">
 
               <p>Open the authenticator app on your device.</p>
               <p>Set up or add an account and scan the barcode.</p>
 
-              <p><img src="<?php echo esc_attr(get_admin_url(null, 'admin-ajax.php?action=2fa_qr')) ?>&amp;cache={{$parent.rand()}}"></p>
+              <p><img src="<?php echo esc_attr(get_admin_url(null, 'admin-ajax.php?action=2fa_qr')) ?>&amp;cache={{$root.rand()}}"></p>
 
-              <p>If you can’t scan the barcode, enter this key manually (make sure you choose the ‘time based’ option): <code>{{$parent.prettyPrintSecret($parent.totp_secret)}}</code></p>
+              <p>If you can’t scan the barcode, enter this key manually (make sure you choose the ‘time based’ option): <code>{{$root.prettyPrintSecret($root.totp_secret)}}</code></p>
 
               <p><label><input type="checkbox" value="1" ng-model="scanned"> I've scanned the code into my device or entered the key</label></p>
 
-              <p><button class="button button-primary" ng-click="$parent.$parent.step = 3" ng-disabled="!scanned">Next</button></p>
-              <p><button class="button" ng-click="$parent.$parent.step = 1">Go back</button></p>
+              <p><button class="button button-primary" ng-click="$root.step = 3" ng-disabled="!scanned">Next</button></p>
+              <p><button class="button" ng-click="$root.step = 1">Go back</button></p>
             </div>
           </div>
           <div ng-switch-when="sms">
             <p>TODO: SMS activation not implemented yet</p>
-            <p><button class="button" ng-click="$parent.$parent.step = 1">Go back</button></p>
+            <p><button class="button" ng-click="$root.step = 1">Go back</button></p>
           </div>
         </div>
       </div>
@@ -98,25 +98,25 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <?php # STEP 3 ?>
 
       <div ng-switch-when="3" class="step">
-        <div ng-switch on="$parent.mode">
+        <div ng-switch on="$root.mode">
           <div ng-switch-when="totp">
 
             <p>
               <label>
                 Give your device a name that you can later use to identify it:
-                <input type="text" ng-model="device_name" ng-disabled="$parent.verification === 'valid'" autofocus>
+                <input type="text" ng-model="device_name" ng-disabled="$root.verification === 'valid'" autofocus>
               </label>
             </p>
 
             <p>
               <label>
                 Please enter the code that appears in the app:
-                <input type="text" ng-model="token" ng-disabled="$parent.verification === 'valid'">
+                <input type="text" ng-model="token" ng-disabled="$root.verification === 'valid'">
               </label>
-              <button class="button" ng-click="$parent.verify(token, device_name)" ng-disabled="device_name.length === 0 || token.length !== 6 || $parent.verification === 'verifying' || $parent.verification === 'valid'">Verify</button>
+              <button class="button" ng-click="$root.verify(token, device_name)" ng-disabled="device_name.length === 0 || token.length !== 6 || $root.verification === 'verifying' || $root.verification === 'valid'">Verify</button>
             </p>
 
-            <div ng-switch on="$parent.verification">
+            <div ng-switch on="$root.verification">
               <div ng-switch-when="verifying">
                 <p>Verifying...</p>
               </div>
@@ -128,13 +128,13 @@ if (!twofa_user_enabled(get_current_user_id())) {
               </div>
             </div>
 
-            <p><button class="button button-primary" ng-click="$parent.$parent.step = 4" ng-disabled="$parent.verification !== 'valid'">Finish</button></p>
-            <p><button class="button" ng-click="$parent.$parent.totp_secret = null; $parent.$parent.step = 2" ng-disabled="$parent.verification === 'valid'">Go back</button></p>
+            <p><button class="button button-primary" ng-click="$root.step = 4" ng-disabled="$root.verification !== 'valid'">Finish</button></p>
+            <p><button class="button" ng-click="$root.totp_secret = null; $root.step = 2" ng-disabled="$root.verification === 'valid'">Go back</button></p>
 
           </div>
           <div ng-switch-when="sms">
             <p>TODO: SMS activation not implemented yet</p>
-            <p><button class="button" ng-click="$parent.$parent.step = 2">Go back</button></p>
+            <p><button class="button" ng-click="$root.step = 2">Go back</button></p>
           </div>
         </div>
       </div>
