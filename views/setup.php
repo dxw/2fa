@@ -59,15 +59,22 @@ if (!twofa_user_enabled(get_current_user_id())) {
               <input type="radio" name="2fa_setup_device" value="sms" ng-model="$root.mode">
               other mobile (log in with a text message)
             </label>
+            <div ng-show="$root.mode === 'sms'">
+              <p>Enter your mobile phone number: <input type="text" ng-model="$root.sms_number"></p>
+              <p>Give your mobile a name that you can later use to identify it: <input type="text" ng-model="$root.device_name"></p>
+            </div>
           </li>
         </ul>
 
         <div ng-switch on="$root.mode">
+          <div ng-switch-default>
+            <p><button class="button button-primary" ng-disabled="true">Next</button></p>
+          </div>
           <div ng-switch-when="totp">
-            <p><button class="button button-primary" ng-click="$root.step = 'totp-2'" ng-disabled="$root.mode === undefined">Next</button></p>
+            <p><button class="button button-primary" ng-click="$root.step = 'totp-2'">Next</button></p>
           </div>
           <div ng-switch-when="sms">
-            <p><button class="button button-primary" ng-click="$root.step = 'sms-2'" ng-disabled="$root.mode === undefined">Next</button></p>
+            <p><button class="button button-primary" ng-click="$root.step = 'sms-2'" ng-disabled="$root.sms_number === undefined || $root.sms_number.length === 0 || $root.device_name === undefined || $root.device_name.length === 0">Next</button></p>
           </div>
         </div>
       </div>
