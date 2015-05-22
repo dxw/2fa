@@ -17,6 +17,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
     <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
     <input type="hidden" id="2fa_sms_send_verification" value="<?php echo esc_attr(wp_create_nonce('2fa_sms_send_verification')) ?>">
     <input type="hidden" id="2fa_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_verify')) ?>">
+    <input type="hidden" id="2fa_sms_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_sms_verify')) ?>">
 
     <?php # steps ?>
 
@@ -152,9 +153,23 @@ if (!twofa_user_enabled(get_current_user_id())) {
             <p>Sent verification SMS!</p>
             <label>
               Please enter the code that is sent to you:
-              <input type="text" ng-model="token" ng-disabled="$root.verification === 'valid'">
+              <input type="text" ng-model="token" ng-disabled="$root.verification === 'valid'" autofocus>
             </label>
-            <button class="button" ng-click="$root.sms_verify(token, device_name)" ng-disabled="token.length !== 6 || $root.verification === 'verifying' || $root.verification === 'valid'">Verify</button>
+            <button class="button" ng-click="$root.sms_verify(token, $root.device_name)" ng-disabled="token.length !== 6 || $root.verification === 'verifying' || $root.verification === 'valid'">Verify</button>
+
+            <div ng-switch on="$root.verification">
+              <div ng-switch-when="verifying">
+                <p>Verifying...</p>
+              </div>
+              <div ng-switch-when="invalid">
+                <p>Invalid! Please try again, or click ‘go back’ and enter another phone number.</p>
+              </div>
+              <div ng-switch-when="valid">
+                <p>Valid!</p>
+              </div>
+            </div>
+
+            <p><button class="button button-primary" ng-click="$root.step = 'finished'" ng-disabled="$root.verification !== 'valid'">Finish</button></p>
           </div>
         </div>
         <p><button class="button" ng-click="$root.step = 'start'">Go back</button></p>

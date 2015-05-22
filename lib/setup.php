@@ -128,3 +128,59 @@ add_action('wp_ajax_2fa_sms_send_verification', function () {
     'sms_sent' => true,
   ]);
 });
+
+// Checks that the token given by the user is valid according to 2fa_temporary_token
+// Then stores the temporary phone number (2fa_temporary_number) to permanent (2fa_devices) and removes the temporary values
+add_action('wp_ajax_2fa_sms_verify', function () {
+  if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], '2fa_sms_verify')) {
+    twofa_json([
+      'error' => true,
+      'reason' => 'invalid nonce',
+    ]);
+  }
+
+  if (empty($_POST['token']) || empty($_POST['deviceName'])) {
+    twofa_json([
+      'error' => true,
+      'reason' => 'missing values',
+    ]);
+  }
+
+  // Get token
+  $token = get_user_meta(get_current_user_id(), '2fa_sms_temporary_token', true);
+  $number = get_user_meta(get_current_user_id(), '2fa_sms_temporary_number', true);
+
+  // Verify it
+  //TODO: use a constant-time string comparison function
+  $valid = stripslashes($_POST['token']) === $token;
+
+  if (!$valid) {
+    twofa_json([
+      'valid' => false,
+    ]);
+  }
+
+  $devices = get_user_meta(get_current_user_id(), '2fa_devices', true);
+  if (!is_array($devices)) {
+    $devices = [];
+  }
+  if (count($devices) >= TWOFA_MAX_DEVICES) {
+    twofa_json([
+      'error' => true,
+      'reason' => 'max devices exceeded',
+    ]);
+  }
+  $devices[] = [
+    'mode' => 'sms',
+    'name' => stripslashes($_POST['deviceName']),
+    'number' => $number,
+  ];
+
+  update_user_meta(get_current_user_id(), '2fa_devices', $devices);
+  delete_user_meta(get_current_user_id(), '2fa_temporary_token');
+  delete_user_meta(get_current_user_id(), '2fa_temporary_number');
+
+  twofa_json([
+    'valid' => true,
+  ]);
+});

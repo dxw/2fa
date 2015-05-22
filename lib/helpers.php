@@ -57,7 +57,8 @@ function twofa_user_devices($user_id) {
         'id' => $k+1,
         'name' => isset($dev['name']) ? $dev['name'] : '[unnamed]',
         'mode' => $dev['mode'],
-        'secret' => $dev['secret'],
+        'secret' => isset($dev['secret']) ? $dev['secret'] : '',
+        'number' => isset($dev['number']) ? $dev['number'] : '',
       ];
     }
   }

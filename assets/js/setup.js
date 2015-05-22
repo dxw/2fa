@@ -91,6 +91,37 @@
                         })
         }
 
+        $rootScope.sms_verify = function (token, deviceName) {
+            $rootScope.verification = 'verifying'
+
+            $http({
+                method: 'POST',
+                url: window.ajaxurl,
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                transformRequest: urlencoded,
+                data: {
+                    action: '2fa_sms_verify',
+                    nonce: document.getElementById('2fa_sms_verify').value,
+                    token: token,
+                    deviceName: deviceName,
+                },
+            })
+                        .success(function (data) {
+                            if (data.error) {
+                                alert('unexpected error5. TODO')
+                                $rootScope.verification = 'invalid'
+                            } else if (data.valid) {
+                                $rootScope.verification = 'valid'
+                            } else {
+                                $rootScope.verification = 'invalid'
+                            }
+                        })
+                        .error(function (data) {
+                            alert('unexpected error6. TODO')
+                            $rootScope.verification = 'invalid'
+                        })
+        }
+
         $rootScope.rand = function () {
             return Math.floor(Math.random()*16777215).toString(16)
         }
