@@ -143,7 +143,7 @@ function twofa_token_blacklist($token) {
 }
 
 // Output a warning
-function twofa_log_failure($mode, $user_id, $token) {
+function twofa_log_failure($user_id, $token) {
   $ip = $_SERVER['REMOTE_ADDR'];
 
   $user = get_user_by('id', $user_id);
@@ -152,7 +152,7 @@ function twofa_log_failure($mode, $user_id, $token) {
     $user_login = $user->user_login;
   }
 
-  trigger_error('IP address "'.$ip.'" attempted to log in as "'.$user_login.'" with a valid password but an invalid "'.$mode.'" token "'.$token.'"', E_USER_WARNING);
+  trigger_error('IP address "'.$ip.'" attempted to log in as "'.$user_login.'" with a valid password but an invalid token "'.$token.'"', E_USER_WARNING);
 }
 
 // Generate shared secret (16 digit base32)

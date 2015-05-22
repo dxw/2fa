@@ -213,7 +213,7 @@ add_action('login_form_login', function () use ($redirect, $render) {
       $errors->add('invalid_token', __('Invalid code. Try again or go back to the previous screen and reenter your login details. Make sure you’re using one of your activated devices.'));
 
       // Report failed login attempt
-      twofa_log_failure('TOTP', $user_id, $token);
+      twofa_log_failure($user_id, $token);
       twofa_bruteforce_login_failure($user_id);
 
       $render(2, $errors, null, $user_id);
