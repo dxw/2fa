@@ -114,7 +114,7 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
     <form method="POST" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')) ?>" id="loginform" name="loginform">
       <p>
         <label for="token">
-          <?php _e('Open the authenticator app on your device and enter the code shown') ?>
+          <?php _e('Enter the code shown in the authenticator app on your device or the SMS sent to your mobile') ?>
           <br>
           <input type="text" name="token" id="token" class="input" size="20" autofocus>
         </label>
@@ -170,6 +170,9 @@ add_action('login_form_login', function () use ($redirect, $render) {
     if (twofa_user_activated($user->ID)) {
       // If the user has 2fa activated, send them to phase 2
 
+      // But first send an SMS if they have that activated
+      twofa_sms_send_login_tokens($user->ID);
+
       $render(2, null, null, $user->ID);
     } else {
       // If the user has 2fa deactivated, log them in
@@ -207,7 +210,7 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
     $token = preg_replace('_[^0-9]_', '', $_POST['token']);
     if (!twofa_user_verify_token($user_id, $token)) {
-      $errors->add('invalid_token', __('Invalid code. Try again. Make sure you’re using one of your activated devices.'));
+      $errors->add('invalid_token', __('Invalid code. Try again or go back to the previous screen and reenter your login details. Make sure you’re using one of your activated devices.'));
 
       // Report failed login attempt
       twofa_log_failure('TOTP', $user_id, $token);

@@ -90,27 +90,17 @@ add_action('wp_ajax_2fa_sms_send_verification', function () {
 
   $number = stripslashes($_POST['number']);
 
-  // Generate a token
-  $token = strtoupper(twofa_generate_token());
-
   // Store it temporarily
   update_user_meta(get_current_user_id(), '2fa_sms_temporary_number', $number);
-  update_user_meta(get_current_user_id(), '2fa_sms_temporary_token', $token);
 
-  // Send it
+  // Send a verification token
+  $err = twofa_sms_send_token(get_current_user_id(), $number);
 
-  if (!defined('TWILIO_ACCOUNT_SID') || !defined('TWILIO_AUTH_TOKEN') || !defined('TWILIO_NUMBER')) {
+  if ($err !== null) {
     twofa_json([
-      'error' => true,
-      'reason' => 'bad configuration',
+      'error' => $err,
     ]);
   }
-
-  $client = new Services_Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-
-  $message = $client->account->messages->sendMessage(TWILIO_NUMBER, $number, 'Verification code: '.$token);
-
-  //TODO: what do we do with $message to figure out if it was sent successfully or not?
 
   // Report that it has been sent
   twofa_json([
@@ -139,11 +129,9 @@ add_action('wp_ajax_2fa_sms_verify', function () {
   $token = get_user_meta(get_current_user_id(), '2fa_sms_temporary_token', true);
   $number = get_user_meta(get_current_user_id(), '2fa_sms_temporary_number', true);
 
-  // Verify it
-  //TODO: use a constant-time string comparison function
-  $valid = stripslashes($_POST['token']) === $token;
 
-  if (!$valid) {
+  // Verify it
+  if (!twofa_sms_verify_token(get_current_user_id(), $token)) {
     twofa_json([
       'valid' => false,
     ]);

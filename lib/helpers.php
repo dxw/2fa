@@ -73,6 +73,10 @@ function twofa_user_verify_token($user_id, $token) {
     return false;
   }
 
+  if (twofa_sms_verify_token($user_id, $token)) {
+    return true;
+  }
+
   $_devices = get_user_meta($user_id, '2fa_devices', true);
   foreach ($_devices as $k => $dev) {
     if ($dev['mode'] === 'totp') {
@@ -212,4 +216,58 @@ function twofa_add_device($user_id, $device_spec) {
   }
   $devices[] = $device_spec;
   update_user_meta(get_current_user_id(), '2fa_devices', $devices);
+}
+
+// Sends $body to $number
+// Returns null on success, the error which occurred on failure
+function twofa_send_sms($number, $body) {
+  if (!defined('TWILIO_ACCOUNT_SID') || !defined('TWILIO_AUTH_TOKEN') || !defined('TWILIO_NUMBER')) {
+    return 'bad configuration';
+  }
+
+  $client = new Services_Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+
+  $message = $client->account->messages->sendMessage(TWILIO_NUMBER, $number, $body);
+
+  //TODO: what do we do with $message to figure out if it was sent successfully or not?
+
+  return null;
+}
+
+// Sends an authentication token to $user at $number
+function twofa_sms_send_token($user_id, $number) {
+
+  // Generate a token
+  $token = strtoupper(twofa_generate_token());
+
+  // Store it temporarily
+  update_user_meta($user_id, '2fa_sms_temporary_token', $token);
+
+  // Send it
+  $err = twofa_send_sms($number, 'Verification code: '.$token);
+
+  if ($err !== null) {
+    return $err;
+  }
+
+  return null;
+}
+
+// Sends an authentication token to $user on all SMS devices
+function twofa_sms_send_login_tokens($user_id) {
+  foreach (twofa_user_devices($user_id) as $device) {
+    if ($device['mode'] === 'sms') {
+      $err = twofa_sms_send_token($user_id, $device['number']);
+      if ($err !== null) {
+        return $err;
+      }
+    }
+  }
+
+  return null;
+}
+
+function twofa_sms_verify_token($user_id, $token) {
+  //TODO: use a constant-time string comparison function
+  return $token === get_user_meta($user_id, '2fa_sms_temporary_token', true);
 }
