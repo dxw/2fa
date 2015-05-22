@@ -200,7 +200,7 @@ function twofa_user_status($user_id) {
 
 // Generate token (to be sent via SMS)
 function twofa_generate_token() {
-  return wp_rand(0, 999999);
+  return sprintf('%06d', wp_rand(0, 999999));
 }
 
 function twofa_add_device($user_id, $device_spec) {
