@@ -242,6 +242,7 @@ function twofa_sms_send_token($user_id, $number) {
 
   // Store it temporarily
   update_user_meta($user_id, '2fa_sms_temporary_token', $token);
+  update_user_meta($user_id, '2fa_sms_temporary_token_time', time());
 
   // Send it
   $err = twofa_send_sms($number, 'Verification code: '.$token);
@@ -268,6 +269,12 @@ function twofa_sms_send_login_tokens($user_id) {
 }
 
 function twofa_sms_verify_token($user_id, $token) {
+  // Check to see if the token has expired
+  //TODO: this hardcoded value should probably be a constant
+  if (time() > get_user_meta($user_id, '2fa_sms_temporary_token_time', true) + 2*60) {
+    return false;
+  }
+
   //TODO: use a constant-time string comparison function
   return $token === get_user_meta($user_id, '2fa_sms_temporary_token', true);
 }
