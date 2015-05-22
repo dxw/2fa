@@ -192,3 +192,8 @@ function twofa_user_status($user_id) {
   $s .= twofa_user_activated($user_id) ? 'Activated' : 'Not activated';
   return $s;
 }
+
+// Generate token (to be sent via SMS)
+function twofa_generate_token() {
+  return wp_rand(0, 999999);
+}

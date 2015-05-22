@@ -89,3 +89,42 @@ add_action('wp_ajax_2fa_qr', function () {
   ->render();
   exit(0);
 });
+
+// Sends an SMS
+add_action('wp_ajax_2fa_sms_send_verification', function () {
+  if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], '2fa_sms_send_verification')) {
+    twofa_json([
+      'error' => true,
+      'reason' => 'invalid nonce',
+    ]);
+  }
+
+  $number = stripslashes($_POST['number']);
+
+  // Generate a token
+  $token = strtoupper(twofa_generate_token());
+
+  // Store it temporarily
+  update_user_meta(get_current_user_id(), '2fa_sms_temporary_number', $number);
+  update_user_meta(get_current_user_id(), '2fa_sms_temporary_token', $token);
+
+  // Send it
+
+  if (!defined('TWILIO_ACCOUNT_SID') || !defined('TWILIO_AUTH_TOKEN') || !defined('TWILIO_NUMBER')) {
+    twofa_json([
+      'error' => true,
+      'reason' => 'bad configuration',
+    ]);
+  }
+
+  $client = new Services_Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+
+  $message = $client->account->messages->sendMessage(TWILIO_NUMBER, $number, 'Verification code: '.$token);
+
+  //TODO: what do we do with $message to figure out if it was sent successfully or not?
+
+  // Report that it has been sent
+  twofa_json([
+    'sms_sent' => true,
+  ]);
+});

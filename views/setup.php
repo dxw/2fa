@@ -15,6 +15,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
     <?php # data ?>
 
     <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
+    <input type="hidden" id="2fa_sms_send_verification" value="<?php echo esc_attr(wp_create_nonce('2fa_sms_send_verification')) ?>">
     <input type="hidden" id="2fa_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_verify')) ?>">
 
     <?php # steps ?>
@@ -140,7 +141,22 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <?php # SMS STEP 2 ?>
 
       <div ng-switch-when="sms-2" class="step">
-        <p>TODO: SMS activation not implemented yet</p>
+        <div ng-switch on="$root.sms_sent">
+          <div ng-switch-default>
+            <p>Sending verification SMS...</p>
+          </div>
+          <div ng-switch-when="error">
+            <p>Sending verification SMS failed. Please go back and try again.</p>
+          </div>
+          <div ng-switch-when="sent">
+            <p>Sent verification SMS!</p>
+            <label>
+              Please enter the code that is sent to you:
+              <input type="text" ng-model="token" ng-disabled="$root.verification === 'valid'">
+            </label>
+            <button class="button" ng-click="$root.sms_verify(token, device_name)" ng-disabled="token.length !== 6 || $root.verification === 'verifying' || $root.verification === 'valid'">Verify</button>
+          </div>
+        </div>
         <p><button class="button" ng-click="$root.step = 'start'">Go back</button></p>
       </div>
 
@@ -160,5 +176,3 @@ if (!twofa_user_enabled(get_current_user_id())) {
   </div>
   <?php
 }
-
-?>
