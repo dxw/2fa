@@ -50,23 +50,12 @@ add_action('wp_ajax_2fa_verify', function () {
     ]);
   }
 
-  $devices = get_user_meta(get_current_user_id(), '2fa_devices', true);
-  if (!is_array($devices)) {
-    $devices = [];
-  }
-  if (count($devices) >= TWOFA_MAX_DEVICES) {
-    twofa_json([
-      'error' => true,
-      'reason' => 'max devices exceeded',
-    ]);
-  }
-  $devices[] = [
+  twofa_add_device(get_current_user_id(), [
     'mode' => 'totp',
     'name' => stripslashes($_POST['deviceName']),
     'secret' => $secret,
-  ];
+  ]);
 
-  update_user_meta(get_current_user_id(), '2fa_devices', $devices);
   delete_user_meta(get_current_user_id(), '2fa_temporary_secret');
 
   twofa_json([
@@ -160,23 +149,12 @@ add_action('wp_ajax_2fa_sms_verify', function () {
     ]);
   }
 
-  $devices = get_user_meta(get_current_user_id(), '2fa_devices', true);
-  if (!is_array($devices)) {
-    $devices = [];
-  }
-  if (count($devices) >= TWOFA_MAX_DEVICES) {
-    twofa_json([
-      'error' => true,
-      'reason' => 'max devices exceeded',
-    ]);
-  }
-  $devices[] = [
+  twofa_add_device(get_current_user_id(), [
     'mode' => 'sms',
     'name' => stripslashes($_POST['deviceName']),
     'number' => $number,
-  ];
+  ]);
 
-  update_user_meta(get_current_user_id(), '2fa_devices', $devices);
   delete_user_meta(get_current_user_id(), '2fa_temporary_token');
   delete_user_meta(get_current_user_id(), '2fa_temporary_number');
 

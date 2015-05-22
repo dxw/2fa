@@ -198,3 +198,18 @@ function twofa_user_status($user_id) {
 function twofa_generate_token() {
   return wp_rand(0, 999999);
 }
+
+function twofa_add_device($user_id, $device_spec) {
+  $devices = get_user_meta(get_current_user_id(), '2fa_devices', true);
+  if (!is_array($devices)) {
+    $devices = [];
+  }
+  if (count($devices) >= TWOFA_MAX_DEVICES) {
+    twofa_json([
+      'error' => true,
+      'reason' => 'max devices exceeded',
+    ]);
+  }
+  $devices[] = $device_spec;
+  update_user_meta(get_current_user_id(), '2fa_devices', $devices);
+}
