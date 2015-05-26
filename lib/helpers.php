@@ -225,11 +225,16 @@ function twofa_send_sms($number, $body) {
     return 'bad configuration';
   }
 
-  $client = new Services_Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+  try {
+    $client = new Services_Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
-  $message = $client->account->messages->sendMessage(TWILIO_NUMBER, $number, $body);
+    $message = $client->account->messages->sendMessage(TWILIO_NUMBER, $number, $body);
 
-  //TODO: what do we do with $message to figure out if it was sent successfully or not?
+    //TODO: what do we do with $message to figure out if it was sent successfully or not?
+  } catch (Services_Twilio_RestException $e) {
+    // Log the error, but otherwise ignore
+    trigger_error('Twilio SMS error: '.$e, E_USER_WARNING);
+  }
 
   return null;
 }
