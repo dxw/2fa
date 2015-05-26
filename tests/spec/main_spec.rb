@@ -28,6 +28,41 @@ RSpec.configure do |config|
   end
 end
 
+def set_override(value)
+  @mysql.query("UPDATE wp_usermeta SET meta_value='"+value+"' WHERE user_id=1 AND meta_key='2fa_override'")
+end
+
+def set_devices(value)
+  @mysql.query("UPDATE wp_usermeta SET meta_value='"+value+"' WHERE user_id=1 AND meta_key='2fa_devices'")
+end
+
+def login
+  # Store the test cookie
+  response = Http::get('/wp-login.php')
+  response.response.code.should == '200'
+  @cookies = extract_cookies(response)
+
+  # Log in
+  response = Http::post(
+    '/wp-login.php',
+    body: {
+      log: 'admin',
+      pwd: 'foobar',
+    },
+    headers: {'Cookie' => @cookies},
+  )
+  @cookies = extract_cookies(response)
+end
+
+def loggedin?
+  # Verify that we're logged in
+  response = Http::get(
+    '/wp-admin/',
+    headers: {'Cookie' => @cookies},
+  )
+  response.response.code == '200'
+end
+
 describe "2FA" do
   before :all do
     host = ENV['MYSQL_HOST'] || 'localhost'
@@ -52,16 +87,10 @@ describe "2FA" do
     system("echo 'define(\"OAUTH2_SERVER_TEST_NONCE_OVERRIDE\", \"sudo\");' | wp --path=wordpress/ core config --dbname="+db+" --dbuser="+user+" --dbpass="+password+" --dbhost="+host+" --extra-php").should be_truthy
     system("wp --path=wordpress/ core multisite-install --url=http://localhost:8910/ --title=Test --admin_user=admin --admin_email=tom@dxw.com --admin_password=foobar").should be_truthy
     system("wp --path=wordpress/ plugin activate 2fa").should be_truthy
-    @mysql.query("INSERT INTO wp_options SET option_name='options_client_applications', option_value='2'")
-    @mysql.query("INSERT INTO wp_options SET option_name='options_client_applications_0_client_id', option_value='123'")
-    @mysql.query("INSERT INTO wp_options SET option_name='options_client_applications_0_client_secret', option_value='456'")
-    @mysql.query("INSERT INTO wp_options SET option_name='options_client_applications_0_name', option_value='Test application 1'")
-    @mysql.query("INSERT INTO wp_options SET option_name='options_client_applications_0_redirect_uri', option_value='http://abc/happy'")
-    @mysql.query("INSERT INTO wp_options SET option_name='options_client_applications_1_client_id', option_value='456'")
-    @mysql.query("INSERT INTO wp_options SET option_name='options_client_applications_1_client_secret', option_value='789'")
-    @mysql.query("INSERT INTO wp_options SET option_name='options_client_applications_1_name', option_value='Test application 2'")
-    @mysql.query("INSERT INTO wp_options SET option_name='options_client_applications_1_redirect_uri', option_value='http://def/happy'")
-    @mysql.query("UPDATE wp_users SET display_name='C. lupus'")
+
+    # Set basic options to be overwritten in tests
+    @mysql.query("INSERT INTO wp_usermeta SET user_id=1, meta_key='2fa_override', meta_value='no'")
+    @mysql.query("INSERT INTO wp_usermeta SET user_id=1, meta_key='2fa_devices', meta_value=''")
 
     # Start WP
     @wp_proc = fork do
@@ -69,30 +98,6 @@ describe "2FA" do
     end
     Process.detach(@wp_proc)
     sleep(5)
-
-    # Store the test cookie
-    response = Http::get('/wp-login.php')
-    response.response.code.should == '200'
-    @cookies = extract_cookies(response)
-
-    # Log in
-    response = Http::post(
-      '/wp-login.php', 
-      body: {
-        log: 'admin',
-        pwd: 'foobar',
-      },
-      headers: {'Cookie' => @cookies},
-    )
-    response.response.code.should == '302'
-    @cookies = extract_cookies(response)
-
-    # Verify that we've stored the cookies correctly
-    response = Http::get(
-      '/wp-admin/', 
-      headers: {'Cookie' => @cookies},
-    )
-    response.response.code.should == '200'
   end
 
   after :all do
@@ -102,10 +107,38 @@ describe "2FA" do
 
   # Tests
 
-  describe "sanity check" do
-    it "works" do
-      response = Http::get('/wp-login.php')
-      response.response.code.should == '200'
+  describe "login process" do
+    describe "without 2FA" do
+      it "allows login" do
+        set_override('no')
+        set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"5AZOON3OUHEDGA3H";}}')
+        login
+        loggedin?.should == true
+      end
+    end
+
+    describe "with 2FA" do
+      it "allows login but redirects to setup" do
+        set_override('yes')
+        set_devices('')
+
+        login
+
+        response = Http::get(
+          '/wp-admin/',
+          headers: {'Cookie' => @cookies},
+        )
+        response.response.code.should == '302'
+        response.headers.get_fields('Location').should == ['http://localhost:8910/wp-admin/users.php?page=2fa&step=setup']
+      end
+
+      it "disallows login with devices set" do
+        set_override('yes')
+        set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"5AZOON3OUHEDGA3H";}}')
+
+        login
+        loggedin?.should == false
+      end
     end
   end
 end
