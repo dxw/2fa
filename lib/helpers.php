@@ -228,9 +228,11 @@ function twofa_send_sms($number, $body) {
   try {
     $client = new Services_Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
-    $message = $client->account->messages->sendMessage(TWILIO_NUMBER, $number, $body);
-
-    //TODO: what do we do with $message to figure out if it was sent successfully or not?
+    $client->account->messages->create(array(
+      'To' => $number,
+      'From' => TWILIO_NUMBER,
+      'Body' => $body,
+    ));
   } catch (Services_Twilio_RestException $e) {
     // Log the error, but otherwise ignore
     trigger_error('Twilio SMS error: '.$e, E_USER_WARNING);
