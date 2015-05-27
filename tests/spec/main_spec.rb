@@ -1,6 +1,7 @@
 require 'httparty'
 require 'nokogiri'
 require 'mysql'
+require 'rotp'
 
 class Http
   include HTTParty
@@ -38,16 +39,37 @@ end
 
 def login
   # Store the test cookie
-  response = Http::get('/wp-login.php')
-  response.response.code.should == '200'
-  @cookies = extract_cookies(response)
+  req = Http::get('/wp-login.php')
+  req.response.code.should == '200'
+  @cookies = extract_cookies(req)
 
   # Log in
-  response = Http::post(
+  req = Http::post(
     '/wp-login.php',
     body: {
       log: 'admin',
       pwd: 'foobar',
+    },
+    headers: {'Cookie' => @cookies},
+  )
+  @cookies = extract_cookies(req)
+  if req.response.code === '200'
+    # extract nonce & user_id
+    map = req.response.body.split("\n").select{|l| l.match(/nonce|user_id/)}.map{|l| l.match(/\A\s*<input type="hidden" name="(.*)" value="(.*)">\s*\Z/)[1,2]}.reduce({}){|m,a| m[a[0]] = a[1]; m}
+    @nonce = map['nonce']
+    @user_id = map['user_id']
+  end
+end
+
+def login_2nd_step(token)
+  response = Http::post(
+    '/wp-login.php',
+    body: {
+      token: token,
+      user_id: @user_id,
+      nonce: @nonce,
+      rememberme: 'no',
+      redirect_to: '',
     },
     headers: {'Cookie' => @cookies},
   )
@@ -107,7 +129,7 @@ describe "2FA" do
 
   # Tests
 
-  describe "login process" do
+  describe "basic login process" do
     describe "without 2FA" do
       it "allows login" do
         set_override('no')
@@ -139,6 +161,29 @@ describe "2FA" do
         login
         loggedin?.should == false
       end
+
+    end
+  end
+
+  describe "login with TOTP" do
+    it "disallows login with incorrect TOTP token" do
+      set_override('yes')
+      set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"5AZOON3OUHEDGA3H";}}')
+
+      login
+      # there's a one in a million chance of this succeeding
+      login_2nd_step('000000')
+      loggedin?.should == false
+    end
+
+    it "allows login with correct TOTP token" do
+      set_override('yes')
+      set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"5AZOON3OUHEDGA3H";}}')
+
+      login
+      totp = ROTP::TOTP.new("5AZOON3OUHEDGA3H")
+      login_2nd_step(totp.now)
+      loggedin?.should == true
     end
   end
 end
