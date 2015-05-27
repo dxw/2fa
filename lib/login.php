@@ -93,7 +93,7 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
         </label>
       </p>
       <?php do_action( 'login_form' ) ?>
-      <p class="forgetmenot"><label for="rememberme"><input name="rememberme" type="checkbox" id="rememberme" value="forever" <?php checked($rememberme); ?>> <?php esc_attr_e('Remember Me') ?></label></p>
+      <p class="forgetmenot"><label for="rememberme"><input name="rememberme" type="checkbox" id="rememberme" value="forever"> Remember Me</label></p>
       <p class="submit">
         <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Log In'); ?>">
         <?php if ($interim_login) : ?>
@@ -119,6 +119,7 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
           <input type="text" name="token" id="token" class="input" size="20" autofocus>
         </label>
       </p>
+      <p class="forgetmenot"><label for="skip_2fa"><input name="skip_2fa" type="checkbox" id="skip_2fa" value="yes"> <?php printf('Remember this computer for %d days (do not check if this is a shared computer)', twofa_skip_days()) ?></label></p>
 
       <?php if (twofa_bruteforce_login_show_captcha($user_id)) : ?>
         <div class="g-recaptcha" data-sitekey="<?php echo esc_attr(RECAPTCHA_PUBLIC_KEY) ?>"></div>

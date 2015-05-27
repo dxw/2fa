@@ -294,3 +294,7 @@ function twofa_sms_verify_token($user_id, $token) {
   //TODO: use a constant-time string comparison function
   return $token === get_user_meta($user_id, '2fa_sms_temporary_token', true);
 }
+
+function twofa_skip_days() {
+  return 30;
+}
