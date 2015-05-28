@@ -2,6 +2,7 @@ require 'httparty'
 require 'nokogiri'
 require 'mysql'
 require 'rotp'
+require 'base32'
 
 class Http
   include HTTParty
@@ -39,6 +40,16 @@ end
 
 def set_devices(value)
   @mysql.query("UPDATE wp_usermeta SET meta_value='"+value+"' WHERE user_id=1 AND meta_key='2fa_devices'")
+end
+
+def set_devices_random_totp
+  @secret = generate_secret
+  set_override('yes')
+  set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"'+@secret+'";}}')
+end
+
+def generate_secret
+  Base32.random_base32(16)
 end
 
 def login
@@ -181,8 +192,7 @@ describe "2FA" do
       end
 
       it "disallows login with devices set" do
-        set_override('yes')
-        set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"5AZOON3OUHEDGA3H";}}')
+        set_devices_random_totp
 
         login
         loggedin?.should == false
@@ -193,8 +203,7 @@ describe "2FA" do
 
   describe "login with TOTP" do
     it "disallows login with incorrect TOTP token" do
-      set_override('yes')
-      set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"5AZOON3OUHEDGA3H";}}')
+      set_devices_random_totp
 
       login
       # there's a one in a million chance of this succeeding
@@ -203,12 +212,30 @@ describe "2FA" do
     end
 
     it "allows login with correct TOTP token" do
-      set_override('yes')
-      set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"5AZOON3OUHEDGA3H";}}')
+      set_devices_random_totp
 
       login
-      totp = ROTP::TOTP.new("5AZOON3OUHEDGA3H")
+      totp = ROTP::TOTP.new(@secret)
       login_2nd_step(totp.now)
+      loggedin?.should == true
+    end
+  end
+
+  describe "skippping" do
+    it "requires a token every time if the checkbox is not checked" do
+      set_devices_random_totp
+
+      login
+      totp = ROTP::TOTP.new(@secret)
+      login_2nd_step(totp.now)
+      loggedin?.should == true
+
+      logout
+
+      login
+      loggedin?.should == false
+
+      login_2nd_step(totp.at(Time.now + 30))
       loggedin?.should == true
     end
   end
