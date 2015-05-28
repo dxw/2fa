@@ -20,7 +20,11 @@ end
 
 # Takes a response, outputs the cookies as they should appear in the Cookie header of a request
 def extract_cookies(response)
-  response.headers.get_fields('Set-Cookie').map {|a| a.split(';')[0]}.join('; ')
+  response.headers.get_fields('Set-Cookie').map {|a| a.split(';')[0].split('=')}.reduce({}) {|m,a| m[a[0]] = a[1]; m}
+end
+
+def format_cookies(m)
+  m.map{|a,b| a+'='+b}.join('; ')
 end
 
 RSpec.configure do |config|
@@ -41,7 +45,7 @@ def login
   # Store the test cookie
   req = Http::get('/wp-login.php')
   req.response.code.should == '200'
-  @cookies = extract_cookies(req)
+  @cookies.merge! extract_cookies(req)
 
   # Log in
   req = Http::post(
@@ -50,9 +54,9 @@ def login
       log: 'admin',
       pwd: 'foobar',
     },
-    headers: {'Cookie' => @cookies},
+    headers: {'Cookie' => format_cookies(@cookies)},
   )
-  @cookies = extract_cookies(req)
+  @cookies.merge! extract_cookies(req)
   if req.response.code === '200'
     # extract nonce & user_id
     map = req.response.body.split("\n").select{|l| l.match(/nonce|user_id/)}.map{|l| l.match(/\A\s*<input type="hidden" name="(.*)" value="(.*)">\s*\Z/)[1,2]}.reduce({}){|m,a| m[a[0]] = a[1]; m}
@@ -71,18 +75,34 @@ def login_2nd_step(token)
       rememberme: 'no',
       redirect_to: '',
     },
-    headers: {'Cookie' => @cookies},
+    headers: {'Cookie' => format_cookies(@cookies)},
   )
-  @cookies = extract_cookies(response)
+  @cookies.merge! extract_cookies(response)
 end
 
 def loggedin?
   # Verify that we're logged in
   response = Http::get(
     '/wp-admin/',
-    headers: {'Cookie' => @cookies},
+    headers: {'Cookie' => format_cookies(@cookies)},
   )
   response.response.code == '200'
+end
+
+def logout
+  req = Http::get(
+    '/wp-login.php?action=logout',
+    headers: {'Cookie' => format_cookies(@cookies)},
+  )
+  req.response.code == '403'
+  nonce = req.response.body.match(/_wpnonce=([0-9a-f]+)\W/)[1]
+
+  req = Http::get(
+    '/wp-login.php?action=logout&_wpnonce='+nonce,
+    headers: {'Cookie' => format_cookies(@cookies)},
+  )
+  req.response.code == '302'
+  @cookies.merge! extract_cookies(req)
 end
 
 describe "2FA" do
@@ -127,6 +147,12 @@ describe "2FA" do
     Process.kill('TERM', @wp_proc)
   end
 
+  before :each do
+    set_override('no')
+    set_devices('')
+    @cookies = {}
+  end
+
   # Tests
 
   describe "basic login process" do
@@ -148,7 +174,7 @@ describe "2FA" do
 
         response = Http::get(
           '/wp-admin/',
-          headers: {'Cookie' => @cookies},
+          headers: {'Cookie' => format_cookies(@cookies)},
         )
         response.response.code.should == '302'
         response.headers.get_fields('Location').should == ['http://localhost:8910/wp-admin/users.php?page=2fa&step=setup']
