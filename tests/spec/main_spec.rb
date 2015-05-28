@@ -76,7 +76,7 @@ def login
   end
 end
 
-def login_2nd_step(token)
+def login_2nd_step(token, params={})
   response = Http::post(
     '/wp-login.php',
     body: {
@@ -85,7 +85,7 @@ def login_2nd_step(token)
       nonce: @nonce,
       rememberme: 'no',
       redirect_to: '',
-    },
+    }.merge(params),
     headers: {'Cookie' => format_cookies(@cookies)},
   )
   @cookies.merge! extract_cookies(response)
@@ -236,6 +236,20 @@ describe "2FA" do
       loggedin?.should == false
 
       login_2nd_step(totp.at(Time.now + 30))
+      loggedin?.should == true
+    end
+
+    it "allows logging in without token" do
+      set_devices_random_totp
+
+      login
+      totp = ROTP::TOTP.new(@secret)
+      login_2nd_step(totp.now, skip_2fa: 'yes')
+      loggedin?.should == true
+
+      logout
+
+      login
       loggedin?.should == true
     end
   end
