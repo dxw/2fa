@@ -222,6 +222,9 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
     $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
     wp_set_auth_cookie($user_id, $rememberme);
+    if (isset($_POST['skip_2fa']) && $_POST['skip_2fa'] === 'yes') {
+      twofa_set_skip_cookie($user_id);
+    }
 
     // Reset captcha
     twofa_bruteforce_login_success($user_id);

@@ -298,3 +298,21 @@ function twofa_sms_verify_token($user_id, $token) {
 function twofa_skip_days() {
   return 30;
 }
+
+// Set a cookie containing:
+// user_id
+// expiration timestamp
+// HMAC
+function twofa_set_skip_cookie($user_id) {
+  // Get values
+  $user_id = absint($user_id);
+  $expiration = time() + (twofa_skip_days() * DAY_IN_SECONDS);
+
+  // Calculate HMAC
+  //TODO: I'm unsure about this code
+  $key = wp_hash($user_id . '|' . $expiration, 'auth');
+  $hmac = hash_hmac('sha256', $user_id . '|' . $expiration, $key);
+
+  // Set cookie
+  setcookie('skip_2fa', $user_id . '|' . $expiration . '|' . $hmac, $expiration, '', '', is_ssl(), true);
+}
