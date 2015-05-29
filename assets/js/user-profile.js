@@ -18,7 +18,7 @@ jQuery(function($) {
             })
                         .done(function (data) {
                             if (data.success) {
-                                alert('Done.')
+                                $this.parents('.column-2fa').find('.2fa-status').text(data.new_status)
                             } else {
                                 alert('Error. Please try again.')
                             }

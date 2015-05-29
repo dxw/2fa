@@ -16,9 +16,9 @@ add_filter('manage_users_custom_column', function ($value, $column_name, $user_i
   if ($column_name === '2fa') {
     $s = '';
 
-    $s .= twofa_user_enabled($user_id) ? 'Enabled' : 'Disabled';
-    $s .= ' - ';
-    $s .= twofa_user_activated($user_id) ? 'Activated' : 'Not activated';
+    $s .= '<span class="2fa-status">';
+    $s .= twofa_user_status($user_id);
+    $s .= '</span>';
 
     // Reset 2FA button
     $disabled = !current_user_can('remove_users');
@@ -49,9 +49,12 @@ add_action('wp_ajax_2fa_deactivate', function () {
 
   $user_id = absint(stripslashes($_POST['user']));
 
-  $ret = update_user_meta($user_id, '2fa_devices', null);
+  // This returns false on failure OR if the new meta value is the same as the old one
+  // So ignore it
+  update_user_meta($user_id, '2fa_devices', null);
 
   twofa_json([
-    'success' => $ret !== false,
+    'success' => true,
+    'new_status' => twofa_user_status($user_id),
   ]);
 });
