@@ -125,13 +125,8 @@ add_action('wp_ajax_2fa_sms_verify', function () {
     ]);
   }
 
-  // Get token
-  $token = get_user_meta(get_current_user_id(), '2fa_sms_temporary_token', true);
-  $number = get_user_meta(get_current_user_id(), '2fa_sms_temporary_number', true);
-
-
   // Verify it
-  if (!twofa_sms_verify_token(get_current_user_id(), $token)) {
+  if (!twofa_sms_verify_token(get_current_user_id(), stripslashes($_POST['token']))) {
     twofa_json([
       'valid' => false,
     ]);
@@ -140,7 +135,7 @@ add_action('wp_ajax_2fa_sms_verify', function () {
   twofa_add_device(get_current_user_id(), [
     'mode' => 'sms',
     'name' => stripslashes($_POST['deviceName']),
-    'number' => $number,
+    'number' => get_user_meta(get_current_user_id(), '2fa_sms_temporary_number', true),
   ]);
 
   delete_user_meta(get_current_user_id(), '2fa_temporary_token');
