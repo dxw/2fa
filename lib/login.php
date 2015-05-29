@@ -168,20 +168,19 @@ add_action('login_form_login', function () use ($redirect, $render) {
       $render(1, $user, null, null);
     }
 
-    if (twofa_user_activated($user->ID)) {
-      // If the user has 2fa activated, send them to phase 2
+    if (twofa_verify_skip_cookie($user->ID) || !twofa_user_activated($user->ID)) {
+      // If the user has a valid skip cookier or haven't got 2FA set up, log them in
+
+      $rememberme = isset($_POST['rememberme']);
+      wp_set_auth_cookie($user->ID, $rememberme);
+      $redirect($user);
+    } else {
+      // Otherwise, send them to phase 2
 
       // But first send an SMS if they have that activated
       twofa_sms_send_login_tokens($user->ID);
 
       $render(2, null, null, $user->ID);
-    } else {
-      // If the user has 2fa deactivated, log them in
-
-      $rememberme = isset($_POST['rememberme']);
-      wp_set_auth_cookie($user->ID, $rememberme);
-
-      $redirect($user);
     }
   }
 

@@ -316,3 +316,24 @@ function twofa_set_skip_cookie($user_id) {
   // Set cookie
   setcookie('skip_2fa', $user_id . '|' . $expiration . '|' . $hmac, $expiration, '', '', is_ssl(), true);
 }
+
+// Check for the skip cookie
+function twofa_verify_skip_cookie($user_id) {
+  if (empty($_COOKIE['skip_2fa'])) {
+    return false;
+  }
+
+  $s = explode('|', $_COOKIE['skip_2fa']);
+  if (absint($s[0]) !== $user_id) {
+    return false;
+  }
+
+  if (absint($s[1]) < time()) {
+    return false;
+  }
+
+  $key = wp_hash($user_id . '|' . absint($s[1]), 'auth');
+  $hmac = hash_hmac('sha256', $user_id . '|' . absint($s[1]), $key);
+
+  return $s[2] === $hmac;
+}
