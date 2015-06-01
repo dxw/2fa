@@ -296,6 +296,10 @@ function twofa_sms_verify_token($user_id, $token) {
 }
 
 function twofa_skip_days() {
+  $value = absint(get_site_option('2fa_skip_days'));
+  if ($value > 0) {
+    return $value;
+  }
   return 30;
 }
 
