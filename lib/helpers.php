@@ -314,16 +314,16 @@ function twofa_set_skip_cookie($user_id) {
   $hmac = hash_hmac('sha256', $user_id . '|' . $expiration, $key);
 
   // Set cookie
-  setcookie('skip_2fa', $user_id . '|' . $expiration . '|' . $hmac, $expiration, '', '', is_ssl(), true);
+  setcookie('skip_2fa_'.$user_id, $user_id . '|' . $expiration . '|' . $hmac, $expiration, '', '', is_ssl(), true);
 }
 
 // Check for the skip cookie
 function twofa_verify_skip_cookie($user_id) {
-  if (empty($_COOKIE['skip_2fa'])) {
+  if (empty($_COOKIE['skip_2fa_'.$user_id])) {
     return false;
   }
 
-  $s = explode('|', $_COOKIE['skip_2fa']);
+  $s = explode('|', $_COOKIE['skip_2fa_'.$user_id]);
   if (absint($s[0]) !== $user_id) {
     return false;
   }

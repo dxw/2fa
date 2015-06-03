@@ -35,11 +35,13 @@ RSpec.configure do |config|
 end
 
 def set_override(value)
-  @mysql.query("UPDATE wp_usermeta SET meta_value='"+value+"' WHERE user_id=1 AND meta_key='2fa_override'")
+  # For all users
+  @mysql.query("UPDATE wp_usermeta SET meta_value='"+value+"' WHERE meta_key='2fa_override'")
 end
 
 def set_devices(value)
-  @mysql.query("UPDATE wp_usermeta SET meta_value='"+value+"' WHERE user_id=1 AND meta_key='2fa_devices'")
+  # For all users
+  @mysql.query("UPDATE wp_usermeta SET meta_value='"+value+"' WHERE meta_key='2fa_devices'")
 end
 
 def set_devices_random_totp
@@ -52,7 +54,7 @@ def generate_secret
   Base32.random_base32(16)
 end
 
-def login
+def login(user='admin')
   # Store the test cookie
   req = Http::get('/wp-login.php')
   req.response.code.should == '200'
@@ -62,7 +64,7 @@ def login
   req = Http::post(
     '/wp-login.php',
     body: {
-      log: 'admin',
+      log: user,
       pwd: 'foobar',
     },
     headers: {'Cookie' => format_cookies(@cookies)},
@@ -140,10 +142,13 @@ describe "2FA" do
     system("echo 'define(\"OAUTH2_SERVER_TEST_NONCE_OVERRIDE\", \"sudo\");' | wp --path=wordpress/ core config --dbname="+db+" --dbuser="+user+" --dbpass="+password+" --dbhost="+host+" --extra-php").should be_truthy
     system("wp --path=wordpress/ core multisite-install --url=http://localhost:8910/ --title=Test --admin_user=admin --admin_email=tom@dxw.com --admin_password=foobar").should be_truthy
     system("wp --path=wordpress/ plugin activate 2fa").should be_truthy
+    system("wp --path=wordpress/ user create editor editor@local.local --role=editor --user_pass=foobar")
 
     # Set basic options to be overwritten in tests
     @mysql.query("INSERT INTO wp_usermeta SET user_id=1, meta_key='2fa_override', meta_value='no'")
     @mysql.query("INSERT INTO wp_usermeta SET user_id=1, meta_key='2fa_devices', meta_value=''")
+    @mysql.query("INSERT INTO wp_usermeta SET user_id=2, meta_key='2fa_override', meta_value='no'")
+    @mysql.query("INSERT INTO wp_usermeta SET user_id=2, meta_key='2fa_devices', meta_value=''")
 
     # Start WP
     @wp_proc = fork do
@@ -250,6 +255,32 @@ describe "2FA" do
       logout
 
       login
+      loggedin?.should == true
+    end
+
+    it "allows multiple users to skip 2FA on one browser" do
+      set_devices_random_totp
+
+      login('admin')
+      totp = ROTP::TOTP.new(@secret)
+      login_2nd_step(totp.now, skip_2fa: 'yes')
+      loggedin?.should == true
+
+      logout
+
+      login('editor')
+      totp = ROTP::TOTP.new(@secret)
+      login_2nd_step(totp.at(Time.now + 30), skip_2fa: 'yes')
+      loggedin?.should == true
+
+      logout
+
+      login('admin')
+      loggedin?.should == true
+
+      logout
+
+      login('editor')
       loggedin?.should == true
     end
   end
