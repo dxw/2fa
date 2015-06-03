@@ -94,7 +94,7 @@ add_action('wp_ajax_2fa_sms_send_verification', function () {
   update_user_meta(get_current_user_id(), '2fa_sms_temporary_number', $number);
 
   // Send a verification token
-  $err = twofa_sms_send_token(get_current_user_id(), $number);
+  $err = twofa_sms_send_token(get_current_user_id(), [$number]);
 
   if ($err !== null) {
     twofa_json([

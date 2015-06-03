@@ -243,34 +243,38 @@ function twofa_send_sms($number, $body) {
   return null;
 }
 
-// Sends an authentication token to $user at $number
-function twofa_sms_send_token($user_id, $number) {
-
+function twofa_sms_send_token($user_id, $numbers) {
   // Generate a token
-  $token = strtoupper(twofa_generate_token());
+  $token = twofa_generate_token();
 
   // Store it temporarily
   update_user_meta($user_id, '2fa_sms_temporary_token', $token);
   update_user_meta($user_id, '2fa_sms_temporary_token_time', time());
 
-  // Send it
-  $err = twofa_send_sms($number, 'Verification code: '.$token);
+  // Send it to all numbers
+  foreach ($numbers as $number) {
+    $err = twofa_send_sms($number, 'Verification code: '.$token);
 
-  if ($err !== null) {
-    return $err;
+    if ($err !== null) {
+      return $err;
+    }
   }
-
-  return null;
 }
 
 // Sends an authentication token to $user on all SMS devices
 function twofa_sms_send_login_tokens($user_id) {
+  // Get all numbers
   foreach (twofa_user_devices($user_id) as $device) {
     if ($device['mode'] === 'sms') {
-      $err = twofa_sms_send_token($user_id, $device['number']);
-      if ($err !== null) {
-        return $err;
-      }
+
+      $numbers[] = $device['number'];
+    }
+  }
+
+  if (count($numbers) > 0) {
+    $err = twofa_sms_send_token($user_id, $numbers);
+    if ($err !== null) {
+      return $err;
     }
   }
 
