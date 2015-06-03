@@ -236,8 +236,11 @@ function twofa_send_sms($number, $body) {
       'Body' => $body,
     ]);
   } catch (Services_Twilio_RestException $e) {
-    // Log the error, but otherwise ignore
+    // Log the error
     trigger_error('Twilio SMS error: '.$e, E_USER_WARNING);
+
+    // Report that this function failed
+    return (string)$e;
   }
 
   return null;
