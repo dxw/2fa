@@ -57,7 +57,8 @@ function twofa_user_devices($user_id) {
         'id' => $k+1,
         'name' => isset($dev['name']) ? $dev['name'] : '[unnamed]',
         'mode' => $dev['mode'],
-        'secret' => $dev['secret'],
+        'secret' => isset($dev['secret']) ? $dev['secret'] : '',
+        'number' => isset($dev['number']) ? $dev['number'] : '',
       ];
     }
   }
@@ -70,6 +71,10 @@ function twofa_user_devices($user_id) {
 function twofa_user_verify_token($user_id, $token) {
   if (twofa_token_blacklist($token)) {
     return false;
+  }
+
+  if (twofa_sms_verify_token($user_id, $token)) {
+    return true;
   }
 
   $_devices = get_user_meta($user_id, '2fa_devices', true);
@@ -138,7 +143,7 @@ function twofa_token_blacklist($token) {
 }
 
 // Output a warning
-function twofa_log_failure($mode, $user_id, $token) {
+function twofa_log_failure($user_id, $token) {
   $ip = $_SERVER['REMOTE_ADDR'];
 
   $user = get_user_by('id', $user_id);
@@ -147,7 +152,7 @@ function twofa_log_failure($mode, $user_id, $token) {
     $user_login = $user->user_login;
   }
 
-  trigger_error('IP address "'.$ip.'" attempted to log in as "'.$user_login.'" with a valid password but an invalid "'.$mode.'" token "'.$token.'"', E_USER_WARNING);
+  trigger_error('IP address "'.$ip.'" attempted to log in as "'.$user_login.'" with a valid password but an invalid token "'.$token.'"', E_USER_WARNING);
 }
 
 // Generate shared secret (16 digit base32)
@@ -191,4 +196,101 @@ function twofa_user_status($user_id) {
   $s .= ' - ';
   $s .= twofa_user_activated($user_id) ? 'Activated' : 'Not activated';
   return $s;
+}
+
+// Generate token (to be sent via SMS)
+function twofa_generate_token() {
+  return sprintf('%06d', wp_rand(0, 999999));
+}
+
+function twofa_add_device($user_id, $device_spec) {
+  $devices = get_user_meta(get_current_user_id(), '2fa_devices', true);
+  if (!is_array($devices)) {
+    $devices = [];
+  }
+  if (count($devices) >= TWOFA_MAX_DEVICES) {
+    twofa_json([
+      'error' => true,
+      'reason' => 'max devices exceeded',
+    ]);
+  }
+  $devices[] = $device_spec;
+  update_user_meta(get_current_user_id(), '2fa_devices', $devices);
+}
+
+// Sends $body to $number
+// Returns null on success, the error which occurred on failure
+function twofa_send_sms($number, $body) {
+  if (!defined('TWILIO_ACCOUNT_SID') || !defined('TWILIO_AUTH_TOKEN') || !defined('TWILIO_NUMBER')) {
+    return 'bad configuration';
+  }
+
+  try {
+    $client = new Services_Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+
+    trigger_error(sprintf('About to send SMS from %s to %s', TWILIO_NUMBER, $number), E_USER_WARNING);
+
+    $client->account->messages->create([
+      'To' => $number,
+      'From' => TWILIO_NUMBER,
+      'Body' => $body,
+    ]);
+  } catch (Services_Twilio_RestException $e) {
+    // Log the error
+    trigger_error('Twilio SMS error: '.$e, E_USER_WARNING);
+
+    // Report that this function failed
+    return (string)$e;
+  }
+
+  return null;
+}
+
+function twofa_sms_send_token($user_id, $numbers) {
+  // Generate a token
+  $token = twofa_generate_token();
+
+  // Store it temporarily
+  update_user_meta($user_id, '2fa_sms_temporary_token', $token);
+  update_user_meta($user_id, '2fa_sms_temporary_token_time', time());
+
+  // Send it to all numbers
+  foreach ($numbers as $number) {
+    $err = twofa_send_sms($number, 'Verification code: '.$token);
+
+    if ($err !== null) {
+      return $err;
+    }
+  }
+}
+
+// Sends an authentication token to $user on all SMS devices
+function twofa_sms_send_login_tokens($user_id) {
+  // Get all numbers
+  foreach (twofa_user_devices($user_id) as $device) {
+    if ($device['mode'] === 'sms') {
+
+      $numbers[] = $device['number'];
+    }
+  }
+
+  if (count($numbers) > 0) {
+    $err = twofa_sms_send_token($user_id, $numbers);
+    if ($err !== null) {
+      return $err;
+    }
+  }
+
+  return null;
+}
+
+function twofa_sms_verify_token($user_id, $token) {
+  // Check to see if the token has expired
+  //TODO: this hardcoded value should probably be a constant
+  if (time() > get_user_meta($user_id, '2fa_sms_temporary_token_time', true) + 2*60) {
+    return false;
+  }
+
+  //TODO: use a constant-time string comparison function
+  return $token === get_user_meta($user_id, '2fa_sms_temporary_token', true);
 }

@@ -7,14 +7,20 @@ if (isset($_POST['device_id']) && wp_verify_nonce($_POST['_wpnonce'], '2fa_deact
   $id = absint($_POST['device_id']);
   $new_devices = [];
   foreach ($devices as $device) {
-    if ($device['id'] !== $id) {
+    if ($device['id'] === $id) {
+      $mode = $device['mode'];
+    } else {
       $new_devices[] = $device;
     }
   }
   update_user_meta(get_current_user_id(), '2fa_devices', $new_devices);
 
   ?>
-  <p>The device has been deactivated. Make sure you delete the account from your authenticator app.</p>
+  <?php if ($mode === 'totp') : ?>
+    <p>The device has been deactivated. Make sure you delete the account from your authenticator app.</p>
+  <?php else : ?>
+    <p>The device has been deactivated.</p>
+  <?php endif ?>
   <p>Return to your <a href="profile.php?page=2fa">2 factor authentication homepage</a>.</p>
   <?php
 
