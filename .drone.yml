@@ -1,0 +1,5 @@
+image: thedxw/wordpress-test
+script:
+  - sh -c 'cd tests && bundle install'
+  - service mysql start
+  - sh -c 'cd tests && bundle exec rspec spec/*_spec.rb'
