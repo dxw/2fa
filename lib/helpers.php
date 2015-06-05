@@ -184,3 +184,11 @@ function twofa_bruteforce_login_show_captcha($user_id) {
 function twofa_bruteforce_login_failures($user_id) {
   return absint(get_user_meta($user_id, '2fa_bruteforce_failed_attempts', true));
 }
+
+function twofa_user_status($user_id) {
+  $s = '';
+  $s .= twofa_user_enabled($user_id) ? 'Enabled' : 'Disabled';
+  $s .= ' - ';
+  $s .= twofa_user_activated($user_id) ? 'Activated' : 'Not activated';
+  return $s;
+}
