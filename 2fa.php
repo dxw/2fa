@@ -20,3 +20,4 @@ require(__DIR__."/lib/user-profile.php");
 require(__DIR__."/lib/page.php");
 require(__DIR__."/lib/force-setup.php");
 require(__DIR__."/lib/users-list.php");
+require(__DIR__."/lib/settings.php");
