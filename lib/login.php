@@ -93,7 +93,7 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
         </label>
       </p>
       <?php do_action( 'login_form' ) ?>
-      <p class="forgetmenot"><label for="rememberme"><input name="rememberme" type="checkbox" id="rememberme" value="forever" <?php checked($rememberme); ?>> <?php esc_attr_e('Remember Me') ?></label></p>
+      <p class="forgetmenot"><label for="rememberme"><input name="rememberme" type="checkbox" id="rememberme" value="forever"> Remember Me</label></p>
       <p class="submit">
         <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e('Log In'); ?>">
         <?php if ($interim_login) : ?>
@@ -119,6 +119,7 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
           <input type="text" name="token" id="token" class="input" size="20" autofocus>
         </label>
       </p>
+      <p class="forgetmenot"><label for="skip_2fa"><input name="skip_2fa" type="checkbox" id="skip_2fa" value="yes"> <?php printf('Remember this computer for %d days (do not check if this is a shared computer)', twofa_skip_days()) ?></label></p>
 
       <?php if (twofa_bruteforce_login_show_captcha($user_id)) : ?>
         <div class="g-recaptcha" data-sitekey="<?php echo esc_attr(RECAPTCHA_PUBLIC_KEY) ?>"></div>
@@ -167,20 +168,19 @@ add_action('login_form_login', function () use ($redirect, $render) {
       $render(1, $user, null, null);
     }
 
-    if (twofa_user_activated($user->ID)) {
-      // If the user has 2fa activated, send them to phase 2
+    if (twofa_verify_skip_cookie($user->ID) || !twofa_user_activated($user->ID)) {
+      // If the user has a valid skip cookier or haven't got 2FA set up, log them in
+
+      $rememberme = isset($_POST['rememberme']);
+      wp_set_auth_cookie($user->ID, $rememberme);
+      $redirect($user);
+    } else {
+      // Otherwise, send them to phase 2
 
       // But first send an SMS if they have that activated
       twofa_sms_send_login_tokens($user->ID);
 
       $render(2, null, null, $user->ID);
-    } else {
-      // If the user has 2fa deactivated, log them in
-
-      $rememberme = isset($_POST['rememberme']);
-      wp_set_auth_cookie($user->ID, $rememberme);
-
-      $redirect($user);
     }
   }
 
@@ -221,6 +221,9 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
     $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
     wp_set_auth_cookie($user_id, $rememberme);
+    if (isset($_POST['skip_2fa']) && $_POST['skip_2fa'] === 'yes') {
+      twofa_set_skip_cookie($user_id);
+    }
 
     // Reset captcha
     twofa_bruteforce_login_success($user_id);

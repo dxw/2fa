@@ -294,3 +294,46 @@ function twofa_sms_verify_token($user_id, $token) {
   //TODO: use a constant-time string comparison function
   return $token === get_user_meta($user_id, '2fa_sms_temporary_token', true);
 }
+
+function twofa_skip_days() {
+  return 30;
+}
+
+// Set a cookie containing:
+// user_id
+// expiration timestamp
+// HMAC
+function twofa_set_skip_cookie($user_id) {
+  // Get values
+  $user_id = absint($user_id);
+  $expiration = time() + (twofa_skip_days() * DAY_IN_SECONDS);
+
+  // Calculate HMAC
+  //TODO: I'm unsure about this code
+  $key = wp_hash($user_id . '|' . $expiration, 'auth');
+  $hmac = hash_hmac('sha256', $user_id . '|' . $expiration, $key);
+
+  // Set cookie
+  setcookie('skip_2fa_'.$user_id, $user_id . '|' . $expiration . '|' . $hmac, $expiration, '', '', is_ssl(), true);
+}
+
+// Check for the skip cookie
+function twofa_verify_skip_cookie($user_id) {
+  if (empty($_COOKIE['skip_2fa_'.$user_id])) {
+    return false;
+  }
+
+  $s = explode('|', $_COOKIE['skip_2fa_'.$user_id]);
+  if (absint($s[0]) !== $user_id) {
+    return false;
+  }
+
+  if (absint($s[1]) < time()) {
+    return false;
+  }
+
+  $key = wp_hash($user_id . '|' . absint($s[1]), 'auth');
+  $hmac = hash_hmac('sha256', $user_id . '|' . absint($s[1]), $key);
+
+  return $s[2] === $hmac;
+}

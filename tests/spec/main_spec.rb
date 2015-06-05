@@ -2,6 +2,7 @@ require 'httparty'
 require 'nokogiri'
 require 'mysql'
 require 'rotp'
+require 'base32'
 
 class Http
   include HTTParty
@@ -34,14 +35,26 @@ RSpec.configure do |config|
 end
 
 def set_override(value)
-  @mysql.query("UPDATE wp_usermeta SET meta_value='"+value+"' WHERE user_id=1 AND meta_key='2fa_override'")
+  # For all users
+  @mysql.query("UPDATE wp_usermeta SET meta_value='"+value+"' WHERE meta_key='2fa_override'")
 end
 
 def set_devices(value)
-  @mysql.query("UPDATE wp_usermeta SET meta_value='"+value+"' WHERE user_id=1 AND meta_key='2fa_devices'")
+  # For all users
+  @mysql.query("UPDATE wp_usermeta SET meta_value='"+value+"' WHERE meta_key='2fa_devices'")
 end
 
-def login
+def set_devices_random_totp
+  @secret = generate_secret
+  set_override('yes')
+  set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"'+@secret+'";}}')
+end
+
+def generate_secret
+  Base32.random_base32(16)
+end
+
+def login(user='admin')
   # Store the test cookie
   req = Http::get('/wp-login.php')
   req.response.code.should == '200'
@@ -51,7 +64,7 @@ def login
   req = Http::post(
     '/wp-login.php',
     body: {
-      log: 'admin',
+      log: user,
       pwd: 'foobar',
     },
     headers: {'Cookie' => format_cookies(@cookies)},
@@ -65,7 +78,7 @@ def login
   end
 end
 
-def login_2nd_step(token)
+def login_2nd_step(token, params={})
   response = Http::post(
     '/wp-login.php',
     body: {
@@ -74,7 +87,7 @@ def login_2nd_step(token)
       nonce: @nonce,
       rememberme: 'no',
       redirect_to: '',
-    },
+    }.merge(params),
     headers: {'Cookie' => format_cookies(@cookies)},
   )
   @cookies.merge! extract_cookies(response)
@@ -129,10 +142,13 @@ describe "2FA" do
     system("echo 'define(\"OAUTH2_SERVER_TEST_NONCE_OVERRIDE\", \"sudo\");' | wp --path=wordpress/ core config --dbname="+db+" --dbuser="+user+" --dbpass="+password+" --dbhost="+host+" --extra-php").should be_truthy
     system("wp --path=wordpress/ core multisite-install --url=http://localhost:8910/ --title=Test --admin_user=admin --admin_email=tom@dxw.com --admin_password=foobar").should be_truthy
     system("wp --path=wordpress/ plugin activate 2fa").should be_truthy
+    system("wp --path=wordpress/ user create editor editor@local.local --role=editor --user_pass=foobar")
 
     # Set basic options to be overwritten in tests
     @mysql.query("INSERT INTO wp_usermeta SET user_id=1, meta_key='2fa_override', meta_value='no'")
     @mysql.query("INSERT INTO wp_usermeta SET user_id=1, meta_key='2fa_devices', meta_value=''")
+    @mysql.query("INSERT INTO wp_usermeta SET user_id=2, meta_key='2fa_override', meta_value='no'")
+    @mysql.query("INSERT INTO wp_usermeta SET user_id=2, meta_key='2fa_devices', meta_value=''")
 
     # Start WP
     @wp_proc = fork do
@@ -181,8 +197,7 @@ describe "2FA" do
       end
 
       it "disallows login with devices set" do
-        set_override('yes')
-        set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"5AZOON3OUHEDGA3H";}}')
+        set_devices_random_totp
 
         login
         loggedin?.should == false
@@ -193,8 +208,7 @@ describe "2FA" do
 
   describe "login with TOTP" do
     it "disallows login with incorrect TOTP token" do
-      set_override('yes')
-      set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"5AZOON3OUHEDGA3H";}}')
+      set_devices_random_totp
 
       login
       # there's a one in a million chance of this succeeding
@@ -203,12 +217,70 @@ describe "2FA" do
     end
 
     it "allows login with correct TOTP token" do
-      set_override('yes')
-      set_devices('a:1:{i:0;a:3:{s:4:"mode";s:4:"totp";s:4:"name";s:6:"meowyy";s:6:"secret";s:16:"5AZOON3OUHEDGA3H";}}')
+      set_devices_random_totp
 
       login
-      totp = ROTP::TOTP.new("5AZOON3OUHEDGA3H")
+      totp = ROTP::TOTP.new(@secret)
       login_2nd_step(totp.now)
+      loggedin?.should == true
+    end
+  end
+
+  describe "skippping" do
+    it "requires a token every time if the checkbox is not checked" do
+      set_devices_random_totp
+
+      login
+      totp = ROTP::TOTP.new(@secret)
+      login_2nd_step(totp.now)
+      loggedin?.should == true
+
+      logout
+
+      login
+      loggedin?.should == false
+
+      login_2nd_step(totp.at(Time.now + 30))
+      loggedin?.should == true
+    end
+
+    it "allows logging in without token" do
+      set_devices_random_totp
+
+      login
+      totp = ROTP::TOTP.new(@secret)
+      login_2nd_step(totp.now, skip_2fa: 'yes')
+      loggedin?.should == true
+
+      logout
+
+      login
+      loggedin?.should == true
+    end
+
+    it "allows multiple users to skip 2FA on one browser" do
+      set_devices_random_totp
+
+      login('admin')
+      totp = ROTP::TOTP.new(@secret)
+      login_2nd_step(totp.now, skip_2fa: 'yes')
+      loggedin?.should == true
+
+      logout
+
+      login('editor')
+      totp = ROTP::TOTP.new(@secret)
+      login_2nd_step(totp.at(Time.now + 30), skip_2fa: 'yes')
+      loggedin?.should == true
+
+      logout
+
+      login('admin')
+      loggedin?.should == true
+
+      logout
+
+      login('editor')
       loggedin?.should == true
     end
   end
