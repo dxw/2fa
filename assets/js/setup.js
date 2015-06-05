@@ -39,7 +39,7 @@
             }
         })
 
-        $scope.verify = function (token) {
+        $scope.verify = function (token, deviceName) {
             $scope.verification = 'verifying'
 
             $http({
@@ -51,6 +51,7 @@
                     action: '2fa_verify',
                     nonce: document.getElementById('2fa_verify').value,
                     token: token,
+                    deviceName: deviceName,
                 },
             })
                         .success(function (data) {

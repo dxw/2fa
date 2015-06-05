@@ -55,6 +55,7 @@ function twofa_user_devices($user_id) {
     foreach ($_devices as $k => $dev) {
       $devices[] = [
         'id' => $k+1,
+        'name' => isset($dev['name']) ? $dev['name'] : '[unnamed]',
         'mode' => $dev['mode'],
         'secret' => $dev['secret'],
       ];
