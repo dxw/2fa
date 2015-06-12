@@ -139,7 +139,8 @@ describe "2FA" do
     @mysql.query("CREATE DATABASE "+db)
     @mysql.query("USE "+db)
     system("rm -f wordpress/wp-config.php").should be_truthy
-    system("echo 'define(\"OAUTH2_SERVER_TEST_NONCE_OVERRIDE\", \"sudo\");' | wp --path=wordpress/ core config --dbname="+db+" --dbuser="+user+" --dbpass="+password+" --dbhost="+host+" --extra-php").should be_truthy
+    pwd = password == '' ? '' : "--dbpass=#{password}"
+    system("wp --path=wordpress/ core config --dbname=#{db} --dbuser=#{user} #{pwd} --dbhost=#{host}").should be_truthy
     system("wp --path=wordpress/ core multisite-install --url=http://localhost:8910/ --title=Test --admin_user=admin --admin_email=tom@dxw.com --admin_password=foobar").should be_truthy
     system("wp --path=wordpress/ plugin activate 2fa").should be_truthy
     system("wp --path=wordpress/ user create editor editor@local.local --role=editor --user_pass=foobar")
