@@ -44,6 +44,9 @@ add_action('wp_ajax_2fa_verify', function () {
   // Verify it
   $valid = twofa_verify_token($secret, stripslashes($_POST['token']));
 
+  // Blacklist it, but ignore the return value
+  twofa_token_blacklist($_POST['token']);
+
   if (!$valid) {
     twofa_json([
       'valid' => false,
