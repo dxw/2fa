@@ -21,3 +21,7 @@ require(__DIR__."/lib/page.php");
 require(__DIR__."/lib/force-setup.php");
 require(__DIR__."/lib/users-list.php");
 require(__DIR__."/lib/settings.php");
+
+if (defined('WP_CLI') && WP_CLI) {
+  require(__DIR__."/lib/wp-cli.php");
+}
