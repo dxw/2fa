@@ -36,7 +36,7 @@ class TWOfa_Command extends WP_CLI_Command {
   public function user($args) {
     global $wpdb;
     $username = $args[0];
-    $result = $wpdb->get_results("
+    $result = $wpdb->get_results($wpdb->prepare("
     SELECT user_login,
     meta_fails.meta_value AS failures,
     meta_dev.meta_value AS devices,
@@ -45,8 +45,8 @@ class TWOfa_Command extends WP_CLI_Command {
     LEFT JOIN $wpdb->usermeta AS meta_fails ON (meta_fails.user_id=id AND meta_fails.meta_key='2fa_bruteforce_failed_attempts')
     LEFT JOIN $wpdb->usermeta AS meta_dev ON (meta_dev.user_id=id AND meta_dev.meta_key='2fa_devices')
     LEFT JOIN $wpdb->usermeta AS meta_override ON (meta_override.user_id=id AND meta_override.meta_key='2fa_override')
-    WHERE user_login='$username'
-    ");
+    WHERE user_login=%s
+    ", $username));
     if (count($result) > 0) {
       $user_info = array_shift($result);
       $device_arr = $this->device_info($user_info->devices);
@@ -64,7 +64,7 @@ class TWOfa_Command extends WP_CLI_Command {
   public function reset($args) {
     global $wpdb;
     $username = $args[0];
-    $result = $wpdb->get_results("SELECT id FROM $wpdb->users WHERE user_login='$username' LIMIT 1");
+    $result = $wpdb->get_results($wpdb->prepare("SELECT id FROM $wpdb->users WHERE user_login=%s LIMIT 1", $username));
     if (count($result) > 0) {
       $user_info = array_shift($result);
       $query2 = "
