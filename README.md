@@ -30,9 +30,9 @@ Admins can also set the number of days users can skip requests for their second 
 
 ## Tests
 
-Install the [drone CLI tool](https://github.com/drone/drone#installation):
+Install the [drone CLI tool](https://github.com/drone/drone#installation) and run:
 
-    drone build
+    drone exec
 
 ## Licence
 

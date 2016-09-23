@@ -148,6 +148,13 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
   exit(0);
 };
 
+function twofa_wp_set_auth_cookie($user_id, $rememberme) {
+    wp_set_auth_cookie($user_id, $rememberme);
+
+    $user = get_user_by('ID', $user_id);
+    do_action('wp_login', $user->user_login, $user);
+}
+
 // Replaces the stock WordPress login form with our own
 add_action('login_form_login', function () use ($redirect, $render) {
   global $interim_login;
@@ -172,7 +179,7 @@ add_action('login_form_login', function () use ($redirect, $render) {
       // If the user has a valid skip cookier or haven't got 2FA set up, log them in
 
       $rememberme = isset($_POST['rememberme']);
-      wp_set_auth_cookie($user->ID, $rememberme);
+      twofa_wp_set_auth_cookie($user->ID, $rememberme);
       $redirect($user);
     } else {
       // Otherwise, send them to phase 2
@@ -220,7 +227,8 @@ add_action('login_form_login', function () use ($redirect, $render) {
     }
 
     $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
-    wp_set_auth_cookie($user_id, $rememberme);
+    twofa_wp_set_auth_cookie($user_id, $rememberme);
+
     if (isset($_POST['skip_2fa']) && $_POST['skip_2fa'] === 'yes') {
       twofa_set_skip_cookie($user_id);
     }
