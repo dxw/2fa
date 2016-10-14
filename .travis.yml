@@ -1,12 +1,12 @@
 language: php
 php:
-  - 5.6
   - 7.0
 services:
   - mysql
 env:
   - MYSQL_HOST=127.0.0.1
 before_install:
+  - composer install
   - sudo apt-get update -qq
   - sudo apt-get install -qq git curl wget unzip
   # Use a recent version of Ruby
@@ -19,6 +19,7 @@ before_install:
 install:
   - composer install
 script:
+  - vendor/bin/peridot spec
   - vendor/bin/php-cs-fixer fix --dry-run -v --diff
   - cd tests
   - bundle install

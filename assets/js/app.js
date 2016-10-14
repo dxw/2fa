@@ -1,7 +1,7 @@
 (function() {
-    'use strict';
+  'use strict';
 
-    require('./setup.js')
-    require('./network-sites.js')
-    require('./user-profile.js')
+  require('./setup.js')
+  require('./network-sites.js')
+  require('./user-profile.js')
 })()

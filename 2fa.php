@@ -7,7 +7,8 @@ Author URI: http://dxw.com
 Network: true
 */
 
-require(__DIR__."/vendor.phar");
+$registrar = require __DIR__.'/src/load.php';
+$registrar->register();
 
 require(__DIR__."/lib/options.php");
 require(__DIR__."/lib/helpers.php");

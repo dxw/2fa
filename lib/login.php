@@ -6,9 +6,9 @@ $get_redirect_to = function ($user) {
     if (isset($_REQUEST['redirect_to'])) {
         $redirect_to = $_REQUEST['redirect_to'];
         // // Redirect to https if user wants ssl
-        // if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') ) {
+        // if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') ) { //
         //   $redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
-        // }
+        // } //
     } else {
         $redirect_to = admin_url();
     }
@@ -113,7 +113,7 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
         <form method="POST" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')) ?>" id="loginform" name="loginform">
             <p>
                 <label for="token">
-                    <?php _e('Enter the code shown in the authenticator app on your device or the SMS sent to your mobile') ?>
+                    <?php _e('Enter the code shown in the authenticator app on your device, the SMS sent to your mobile, or the email sent to your inbox') ?>
                     <br>
                     <input type="text" name="token" id="token" class="input" size="20" autofocus>
                 </label>
@@ -184,8 +184,10 @@ add_action('login_form_login', function () use ($redirect, $render) {
         } else {
             // Otherwise, send them to phase 2
 
-            // But first send an SMS if they have that activated
+            // But first send an SMS or email if they have that activated
             twofa_sms_send_login_tokens($user->ID);
+            $emailLogin = new \Dxw\TwoFa\EmailLogin();
+            $emailLogin->sendLoginTokens($user->ID);
 
             $render(2, null, null, $user->ID);
         }

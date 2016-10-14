@@ -83,6 +83,11 @@ function twofa_user_verify_token($user_id, $token)
         return true;
     }
 
+    $tokens = new \Dxw\TwoFa\Tokens();
+    if ($tokens->isValid('email', $user_id, $token)) {
+        return true;
+    }
+
     $_devices = get_user_meta($user_id, '2fa_devices', true);
     foreach ($_devices as $k => $dev) {
         if ($dev['mode'] === 'totp') {

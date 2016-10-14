@@ -1,8 +1,0 @@
-build:
-  image: thedxw/wordpress-test
-  commands:
-    - service mysql start
-    - mysql -e 'CREATE DATABASE 2fa_test'
-    - cd tests
-    - bundle install
-    - bundle exec rspec spec/*_spec.rb

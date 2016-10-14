@@ -17,8 +17,10 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
     <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
     <input type="hidden" id="2fa_sms_send_verification" value="<?php echo esc_attr(wp_create_nonce('2fa_sms_send_verification')) ?>">
+    <input type="hidden" id="2fa_email_send_verification" value="<?php echo esc_attr(wp_create_nonce('2fa_email_send_verification')) ?>">
     <input type="hidden" id="2fa_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_verify')) ?>">
     <input type="hidden" id="2fa_sms_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_sms_verify')) ?>">
+    <input type="hidden" id="2fa_email_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_email_verify')) ?>">
 
     <?php # steps?>
 
@@ -67,6 +69,16 @@ if (!twofa_user_enabled(get_current_user_id())) {
               <p>Give your mobile a name that you can later use to identify it: <input type="text" ng-model="$root.device_name"></p>
             </div>
           </li>
+          <li>
+            <label>
+              <input type="radio" name="2fa_setup_device" value="email" ng-model="$root.mode">
+              I don't have a phone I can use at work.
+            </label>
+            <div ng-show="$root.mode === 'email'">
+              <p>The activation code email will be sent to this email address: <strong><?php echo esc_html(wp_get_current_user()->user_email) ?></strong></p>
+            </div>
+          </li>
+
         </ul>
 
         <div ng-switch on="$root.mode">
@@ -78,6 +90,9 @@ if (!twofa_user_enabled(get_current_user_id())) {
           </div>
           <div ng-switch-when="sms">
             <p><button class="button button-primary" ng-click="$root.step = 'sms-2'" ng-disabled="$root.sms_number === undefined || $root.sms_number.length === 0 || $root.device_name === undefined || $root.device_name.length === 0">Next</button></p>
+          </div>
+          <div ng-switch-when="email">
+            <p><button class="button button-primary" ng-click="$root.step = 'email-2'">Next</button></p>
           </div>
         </div>
       </div>
@@ -175,6 +190,43 @@ if (!twofa_user_enabled(get_current_user_id())) {
         </div>
         <p><button class="button" ng-click="$root.step = 'start'">Go back</button></p>
       </div>
+
+      <?php # EMAIL STEP 2?>
+
+      <div ng-switch-when="email-2" class="step">
+        <div ng-switch on="$root.email_sent">
+          <div ng-switch-default>
+            <p>Sending verification email...</p>
+          </div>
+          <div ng-switch-when="error">
+            <p>Sending verification email failed. Please go back and try again.</p>
+          </div>
+          <div ng-switch-when="sent">
+            <p>Sent verification email!</p>
+            <label>
+              Please enter the code that is sent to you:
+              <input type="text" ng-model="token" ng-disabled="$root.verification === 'valid'" autofocus>
+            </label>
+            <button class="button" ng-click="$root.email_verify(token)" ng-disabled="token.length !== 6 || $root.verification === 'verifying' || $root.verification === 'valid'">Verify</button>
+
+            <div ng-switch on="$root.verification">
+              <div ng-switch-when="verifying">
+                <p>Verifying...</p>
+              </div>
+              <div ng-switch-when="invalid">
+                <p>Invalid! Please try again, or check that your email address is set correctly on <a href="<?php admin_url('profile.php') ?>">your profile</a>.</p>
+              </div>
+              <div ng-switch-when="valid">
+                <p>Valid!</p>
+              </div>
+            </div>
+
+            <p><button class="button button-primary" ng-click="$root.step = 'finished'" ng-disabled="$root.verification !== 'valid'">Finish</button></p>
+          </div>
+        </div>
+        <p><button class="button" ng-click="$root.step = 'start'">Go back</button></p>
+      </div>
+
 
       <?php # finished?>
 
