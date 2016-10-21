@@ -1,29 +1,30 @@
 <?php
 
 if (!twofa_user_enabled(get_current_user_id())) {
-  ?>
+    ?>
   <p>You cannot use 2FA because it has not been set up for your account yet.</p>
   <?php
-} else if (twofa_user_activated(get_current_user_id()) >= TWOFA_MAX_DEVICES) {
-  ?>
+
+} elseif (twofa_user_activated(get_current_user_id()) >= TWOFA_MAX_DEVICES) {
+    ?>
   <p>You already have the maximum number of devices activated. Please deactivate one before setting up a new device.</p>
   <?php
-} else {
 
-  ?>
+} else {
+    ?>
   <div ng-app="2fa" id="ng-app" ng-controller="Setup" class="twofa-setup">
-    <?php # data ?>
+    <?php # data?>
 
     <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
     <input type="hidden" id="2fa_sms_send_verification" value="<?php echo esc_attr(wp_create_nonce('2fa_sms_send_verification')) ?>">
     <input type="hidden" id="2fa_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_verify')) ?>">
     <input type="hidden" id="2fa_sms_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_sms_verify')) ?>">
 
-    <?php # steps ?>
+    <?php # steps?>
 
     <div ng-switch on="step">
 
-      <?php # explanation and stuff ?>
+      <?php # explanation and stuff?>
 
       <div ng-switch-default class="step">
         <p>To increase the security on this blog 2 factor authentication (also known as 2-step verification) has now been enabled for your account. Please follow the steps to activate a device for 2 factor authentication.</p>
@@ -31,7 +32,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         <p><button class="button button-primary" ng-click="$root.step = 'start'">Start activation</button></p>
       </div>
 
-      <?php # STEP 1 ?>
+      <?php # STEP 1?>
 
       <div ng-switch-when="start" class="step">
         <p>What kind of device are you using?</p>
@@ -81,7 +82,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         </div>
       </div>
 
-      <?php # TOTP STEP 2 ?>
+      <?php # TOTP STEP 2?>
 
       <div ng-switch-when="totp-2" class="step">
         <div ng-show="!$root.totp_secret">
@@ -103,7 +104,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         </div>
       </div>
 
-      <?php # TOTP STEP 3 ?>
+      <?php # TOTP STEP 3?>
 
       <div ng-switch-when="totp-3" class="step">
 
@@ -139,7 +140,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
       </div>
 
-      <?php # SMS STEP 2 ?>
+      <?php # SMS STEP 2?>
 
       <div ng-switch-when="sms-2" class="step">
         <div ng-switch on="$root.sms_sent">
@@ -175,7 +176,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         <p><button class="button" ng-click="$root.step = 'start'">Go back</button></p>
       </div>
 
-      <?php # finished ?>
+      <?php # finished?>
 
       <div ng-switch-when="finished" class="step">
         <p>Finished!</p>
@@ -190,4 +191,5 @@ if (!twofa_user_enabled(get_current_user_id())) {
     </div>
   </div>
   <?php
+
 }

@@ -4,10 +4,9 @@
 // Note that this can't be done with ACF because ACF can't display options on network pages
 
 add_action('personal_options', function ($user) {
-  $enabled = twofa_user_override($user->ID);
+    $enabled = twofa_user_override($user->ID);
 
-  $disabled = !current_user_can('manage_sites');
-  ?>
+    $disabled = !current_user_can('manage_sites'); ?>
 
   <tr class="user-2fa-enabled">
     <th scope="row">2FA</th>
@@ -34,17 +33,18 @@ add_action('personal_options', function ($user) {
   </tr>
 
   <?php
+
 });
 
 $fn = function ($user_id) {
-  if (!current_user_can('manage_sites')) {
-    return;
-  }
+    if (!current_user_can('manage_sites')) {
+        return;
+    }
 
-  if (isset($_POST['2fa_override'])) {
-    $value = 'default';
+    if (isset($_POST['2fa_override'])) {
+        $value = 'default';
 
-    switch ($_POST['2fa_override']) {
+        switch ($_POST['2fa_override']) {
       case 'yes':
       $value = 'yes';
       break;
@@ -53,8 +53,8 @@ $fn = function ($user_id) {
       break;
     }
 
-    update_user_meta($user_id, '2fa_override', $value);
-  }
+        update_user_meta($user_id, '2fa_override', $value);
+    }
 };
 
 // Called after nonce checks

@@ -16,7 +16,10 @@ before_install:
   # Install wp-cli
   - sudo wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -O /usr/local/bin/wp
   - sudo chmod 755 /usr/local/bin/wp
+install:
+  - composer install
 script:
+  - vendor/bin/php-cs-fixer fix --dry-run -v --diff
   - cd tests
   - bundle install
   - bundle exec rspec spec/*_spec.rb
