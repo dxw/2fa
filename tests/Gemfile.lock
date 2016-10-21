@@ -37,6 +37,3 @@ DEPENDENCIES
   rotp
   rspec
   ruby-mysql
-
-BUNDLED WITH
-   1.10.2

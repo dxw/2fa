@@ -1,12 +1,12 @@
 language: php
 php:
-  - 5.6
   - 7.0
 services:
   - mysql
 env:
   - MYSQL_HOST=127.0.0.1
 before_install:
+  - composer install
   - sudo apt-get update -qq
   - sudo apt-get install -qq git curl wget unzip
   # Use a recent version of Ruby
@@ -16,7 +16,11 @@ before_install:
   # Install wp-cli
   - sudo wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -O /usr/local/bin/wp
   - sudo chmod 755 /usr/local/bin/wp
+install:
+  - composer install
 script:
+  - vendor/bin/peridot spec
+  - vendor/bin/php-cs-fixer fix --dry-run -v --diff
   - cd tests
   - bundle install
   - bundle exec rspec spec/*_spec.rb

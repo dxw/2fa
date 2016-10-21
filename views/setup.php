@@ -1,29 +1,32 @@
 <?php
 
 if (!twofa_user_enabled(get_current_user_id())) {
-  ?>
+    ?>
   <p>You cannot use 2FA because it has not been set up for your account yet.</p>
   <?php
-} else if (twofa_user_activated(get_current_user_id()) >= TWOFA_MAX_DEVICES) {
-  ?>
+
+} elseif (twofa_user_activated(get_current_user_id()) >= TWOFA_MAX_DEVICES) {
+    ?>
   <p>You already have the maximum number of devices activated. Please deactivate one before setting up a new device.</p>
   <?php
-} else {
 
-  ?>
+} else {
+    ?>
   <div ng-app="2fa" id="ng-app" ng-controller="Setup" class="twofa-setup">
-    <?php # data ?>
+    <?php # data?>
 
     <input type="hidden" id="2fa_generate_secret" value="<?php echo esc_attr(wp_create_nonce('2fa_generate_secret')) ?>">
     <input type="hidden" id="2fa_sms_send_verification" value="<?php echo esc_attr(wp_create_nonce('2fa_sms_send_verification')) ?>">
+    <input type="hidden" id="2fa_email_send_verification" value="<?php echo esc_attr(wp_create_nonce('2fa_email_send_verification')) ?>">
     <input type="hidden" id="2fa_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_verify')) ?>">
     <input type="hidden" id="2fa_sms_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_sms_verify')) ?>">
+    <input type="hidden" id="2fa_email_verify" value="<?php echo esc_attr(wp_create_nonce('2fa_email_verify')) ?>">
 
-    <?php # steps ?>
+    <?php # steps?>
 
     <div ng-switch on="step">
 
-      <?php # explanation and stuff ?>
+      <?php # explanation and stuff?>
 
       <div ng-switch-default class="step">
         <p>To increase the security on this blog 2 factor authentication (also known as 2-step verification) has now been enabled for your account. Please follow the steps to activate a device for 2 factor authentication.</p>
@@ -31,7 +34,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         <p><button class="button button-primary" ng-click="$root.step = 'start'">Start activation</button></p>
       </div>
 
-      <?php # STEP 1 ?>
+      <?php # STEP 1?>
 
       <div ng-switch-when="start" class="step">
         <p>What kind of device are you using?</p>
@@ -66,6 +69,16 @@ if (!twofa_user_enabled(get_current_user_id())) {
               <p>Give your mobile a name that you can later use to identify it: <input type="text" ng-model="$root.device_name"></p>
             </div>
           </li>
+          <li>
+            <label>
+              <input type="radio" name="2fa_setup_device" value="email" ng-model="$root.mode">
+              I don't have a phone I can use at work.
+            </label>
+            <div ng-show="$root.mode === 'email'">
+              <p>The activation code email will be sent to this email address: <strong><?php echo esc_html(wp_get_current_user()->user_email) ?></strong></p>
+            </div>
+          </li>
+
         </ul>
 
         <div ng-switch on="$root.mode">
@@ -78,10 +91,13 @@ if (!twofa_user_enabled(get_current_user_id())) {
           <div ng-switch-when="sms">
             <p><button class="button button-primary" ng-click="$root.step = 'sms-2'" ng-disabled="$root.sms_number === undefined || $root.sms_number.length === 0 || $root.device_name === undefined || $root.device_name.length === 0">Next</button></p>
           </div>
+          <div ng-switch-when="email">
+            <p><button class="button button-primary" ng-click="$root.step = 'email-2'">Next</button></p>
+          </div>
         </div>
       </div>
 
-      <?php # TOTP STEP 2 ?>
+      <?php # TOTP STEP 2?>
 
       <div ng-switch-when="totp-2" class="step">
         <div ng-show="!$root.totp_secret">
@@ -103,7 +119,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         </div>
       </div>
 
-      <?php # TOTP STEP 3 ?>
+      <?php # TOTP STEP 3?>
 
       <div ng-switch-when="totp-3" class="step">
 
@@ -139,7 +155,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
 
       </div>
 
-      <?php # SMS STEP 2 ?>
+      <?php # SMS STEP 2?>
 
       <div ng-switch-when="sms-2" class="step">
         <div ng-switch on="$root.sms_sent">
@@ -175,7 +191,44 @@ if (!twofa_user_enabled(get_current_user_id())) {
         <p><button class="button" ng-click="$root.step = 'start'">Go back</button></p>
       </div>
 
-      <?php # finished ?>
+      <?php # EMAIL STEP 2?>
+
+      <div ng-switch-when="email-2" class="step">
+        <div ng-switch on="$root.email_sent">
+          <div ng-switch-default>
+            <p>Sending verification email...</p>
+          </div>
+          <div ng-switch-when="error">
+            <p>Sending verification email failed. Please go back and try again.</p>
+          </div>
+          <div ng-switch-when="sent">
+            <p>Sent verification email!</p>
+            <label>
+              Please enter the code that is sent to you:
+              <input type="text" ng-model="token" ng-disabled="$root.verification === 'valid'" autofocus>
+            </label>
+            <button class="button" ng-click="$root.email_verify(token)" ng-disabled="token.length !== 6 || $root.verification === 'verifying' || $root.verification === 'valid'">Verify</button>
+
+            <div ng-switch on="$root.verification">
+              <div ng-switch-when="verifying">
+                <p>Verifying...</p>
+              </div>
+              <div ng-switch-when="invalid">
+                <p>Invalid! Please try again, or check that your email address is set correctly on <a href="<?php admin_url('profile.php') ?>">your profile</a>.</p>
+              </div>
+              <div ng-switch-when="valid">
+                <p>Valid!</p>
+              </div>
+            </div>
+
+            <p><button class="button button-primary" ng-click="$root.step = 'finished'" ng-disabled="$root.verification !== 'valid'">Finish</button></p>
+          </div>
+        </div>
+        <p><button class="button" ng-click="$root.step = 'start'">Go back</button></p>
+      </div>
+
+
+      <?php # finished?>
 
       <div ng-switch-when="finished" class="step">
         <p>Finished!</p>
@@ -190,4 +243,5 @@ if (!twofa_user_enabled(get_current_user_id())) {
     </div>
   </div>
   <?php
+
 }
