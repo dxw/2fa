@@ -19,7 +19,6 @@ add_action('manage_sites_custom_column', function ($column_name, $blawg_id) {
             </div>
         </div>
         <?php
-
     }
 }, 10, 2);
 
@@ -34,7 +33,6 @@ add_action('wpmueditblogaction', function ($id) {
     </tr>
 
     <?php
-
 });
 
 // Update the blog option

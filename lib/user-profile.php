@@ -33,7 +33,6 @@ add_action('personal_options', function ($user) {
     </tr>
 
     <?php
-
 });
 
 $fn = function ($user_id) {
