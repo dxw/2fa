@@ -1,0 +1,109 @@
+<?php
+
+require_once(__DIR__.'/../helpers/wp_cli_command.php');
+require_once(__DIR__.'/../helpers/wp_cli.php');
+
+describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
+    beforeEach(function () {
+        \WP_Mock::setUp();
+        $this->twoFaCommand = new \Dxw\TwoFa\WpCli\TwoFaCommand();
+    });
+
+    afterEach(function () {
+        \WP_Mock::tearDown();
+    });
+
+    it('is a WP_CLI_Command', function () {
+        expect($this->twoFaCommand)->is->an->instanceof(\WP_CLI_Command::class);
+    });
+
+    describe('->fails()', function () {
+        it('shows failures', function () {
+            $GLOBALS['wpdb'] = \Mockery::mock(\WP_DB::class, function ($mock) {
+                $mock->users = 'my_users';
+                $mock->usermeta = 'my_usermeta';
+                $mock->shouldReceive('get_results')->with("\n        SELECT user_login,\n        meta_fails.meta_value AS failures,\n        meta_dev.meta_value AS devices\n        FROM my_users\n        LEFT JOIN my_usermeta AS meta_fails ON ( meta_fails.user_id=id AND meta_fails.meta_key = '2fa_bruteforce_failed_attempts' )\n        LEFT JOIN my_usermeta AS meta_dev ON ( meta_dev.user_id=id AND meta_dev.meta_key = '2fa_devices' )\n        WHERE meta_fails.meta_value > 0\n        ORDER BY meta_fails.meta_value +0 DESC\n        ")->andReturn([
+                    (object)['devices' => serialize([['mode' => 'a']]), 'failures' => 5, 'user_login' => 'c'],
+                    (object)['devices' => serialize([['mode' => 'x']]), 'failures' => 2, 'user_login' => 'z'],
+                ]);
+            });
+
+            \WP_CLI::$lines = [];
+            $this->twoFaCommand->fails([]);
+            expect(\WP_CLI::$lines)->to->equal([
+                ['   5 c (a)'],
+                ['   2 z (x)'],
+            ]);
+        });
+    });
+
+    describe('->user()', function () {
+        context('when no results', function () {
+            it('does nothing', function () {
+                $GLOBALS['wpdb'] = \Mockery::mock(\WP_DB::class, function ($mock) {
+                    $mock->users = 'my_users';
+                    $mock->usermeta = 'my_usermeta';
+                    $mock->shouldReceive('get_results')->with("\n        SELECT user_login,\n        meta_fails.meta_value AS failures,\n        meta_dev.meta_value AS devices,\n        meta_override.meta_value AS override\n        FROM my_users\n        LEFT JOIN my_usermeta AS meta_fails ON ( meta_fails.user_id=id AND meta_fails.meta_key = '2fa_bruteforce_failed_attempts' )\n        LEFT JOIN my_usermeta AS meta_dev ON ( meta_dev.user_id=id AND meta_dev.meta_key = '2fa_devices' )\n        LEFT JOIN my_usermeta AS meta_override ON ( meta_override.user_id=id AND meta_override.meta_key = '2fa_override' )\n        WHERE user_login = 'alice'\n        ")->andReturn([]);
+                });
+
+                \WP_CLI::$lines = [];
+                $this->twoFaCommand->user(['alice']);
+                expect(\WP_CLI::$lines)->to->equal([]);
+            });
+        });
+
+        context('when there are results', function () {
+            it('prints a line', function () {
+                $GLOBALS['wpdb'] = \Mockery::mock(\WP_DB::class, function ($mock) {
+                    $mock->users = 'my_users';
+                    $mock->usermeta = 'my_usermeta';
+                    $mock->shouldReceive('get_results')->with("\n        SELECT user_login,\n        meta_fails.meta_value AS failures,\n        meta_dev.meta_value AS devices,\n        meta_override.meta_value AS override\n        FROM my_users\n        LEFT JOIN my_usermeta AS meta_fails ON ( meta_fails.user_id=id AND meta_fails.meta_key = '2fa_bruteforce_failed_attempts' )\n        LEFT JOIN my_usermeta AS meta_dev ON ( meta_dev.user_id=id AND meta_dev.meta_key = '2fa_devices' )\n        LEFT JOIN my_usermeta AS meta_override ON ( meta_override.user_id=id AND meta_override.meta_key = '2fa_override' )\n        WHERE user_login = 'alice'\n        ")->andReturn([
+                        (object)['devices' => serialize([['mydevice']]), 'failures' => 5, 'user_login' => 'alice', 'override' => 'meow'],
+                        (object)['a' => 'this will be ignored'],
+                    ]);
+                });
+
+                \WP_CLI::$lines = [];
+                $this->twoFaCommand->user(['alice']);
+                expect(\WP_CLI::$lines)->to->equal([
+                    ['user:alice override:meow failures:5 device:["mydevice"]'],
+                ]);
+            });
+        });
+    });
+
+    describe('->reset()', function () {
+        context('when there are no results', function () {
+            it('does nothing', function () {
+                $GLOBALS['wpdb'] = \Mockery::mock(\WP_DB::class, function ($mock) {
+                    $mock->users = 'my_users';
+                    $mock->usermeta = 'my_usermeta';
+                    $mock->shouldReceive('get_results')->with("SELECT id FROM my_users WHERE user_login = 'bob' LIMIT 1")->andReturn([]);
+                    $mock->shouldReceive('get_results')->never();
+                });
+
+                \WP_CLI::$lines = [];
+                $this->twoFaCommand->reset(['bob']);
+                expect(\WP_CLI::$lines)->to->equal([]);
+            });
+        });
+
+        context('when there are results', function () {
+            it('resets 2fa settings', function () {
+                $GLOBALS['wpdb'] = \Mockery::mock(\WP_DB::class, function ($mock) {
+                    $mock->users = 'my_users';
+                    $mock->usermeta = 'my_usermeta';
+                    $mock->shouldReceive('get_results')->with("SELECT id FROM my_users WHERE user_login = 'bob' LIMIT 1")->andReturn([
+                        (object)['id' => 7],
+                        (object)['a' => 'this will be ignored'],
+                    ]);
+                    $mock->shouldReceive('get_results')->once()->with("\n            DELETE FROM my_usermeta WHERE user_id='7' AND meta_key LIKE '2fa_%'\n            ");
+                });
+
+                \WP_CLI::$lines = [];
+                $this->twoFaCommand->reset(['bob']);
+                expect(\WP_CLI::$lines)->to->equal([]);
+            });
+        });
+    });
+});
