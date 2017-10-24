@@ -82,14 +82,12 @@ class TwoFaCommand extends \WP_CLI_Command
             $query2 = "
             DELETE FROM $wpdb->usermeta WHERE user_id='$user_info->id' AND meta_key LIKE '2fa_%'
             ";
-            //WP_CLI::line(sprintf("%s",$query2));
             $wpdb->get_results($query2);
         }
     }
 
     private function device_info($data)
     {
-        /* TODO it's possible that there are multiple devices, but we only return the first */
         $x = unserialize($data);
         return array_shift($x);
     }
