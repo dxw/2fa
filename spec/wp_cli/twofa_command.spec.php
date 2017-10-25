@@ -102,7 +102,7 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
                         (object)['a' => 'this will be ignored'],
                     ]);
                     $mock->shouldReceive('prepare')->with("\n            DELETE FROM my_usermeta WHERE user_id=%d AND meta_key LIKE '2fa_%'\n            ", 7)->andReturn('QUERY2');
-                    $mock->shouldReceive('get_results')->once()->with('QUERY2');
+                    $mock->shouldReceive('query')->once()->with('QUERY2');
                 });
 
                 \WP_CLI::$lines = [];
