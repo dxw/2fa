@@ -52,9 +52,9 @@ class TwoFaCommand extends \WP_CLI_Command
         LEFT JOIN $wpdb->usermeta AS meta_fails ON ( meta_fails.user_id=id AND meta_fails.meta_key = '2fa_bruteforce_failed_attempts' )
         LEFT JOIN $wpdb->usermeta AS meta_dev ON ( meta_dev.user_id=id AND meta_dev.meta_key = '2fa_devices' )
         LEFT JOIN $wpdb->usermeta AS meta_override ON ( meta_override.user_id=id AND meta_override.meta_key = '2fa_override' )
-        WHERE user_login = '$username'
+        WHERE user_login = %s
         ";
-        $result = $wpdb->get_results($query);
+        $result = $wpdb->get_results($wpdb->prepare($query, $username));
         if (count($result) > 0) {
             $user_info = array_shift($result);
             $device_arr = $this->device_info($user_info->devices);
@@ -75,14 +75,14 @@ class TwoFaCommand extends \WP_CLI_Command
     {
         global $wpdb;
         $username = $args[0];
-        $query = "SELECT id FROM $wpdb->users WHERE user_login = '$username' LIMIT 1";
-        $result = $wpdb->get_results($query);
+        $query = "SELECT id FROM $wpdb->users WHERE user_login = %s LIMIT 1";
+        $result = $wpdb->get_results($wpdb->prepare($query, $username));
         if (count($result) > 0) {
             $user_info = array_shift($result);
             $query2 = "
-            DELETE FROM $wpdb->usermeta WHERE user_id='$user_info->id' AND meta_key LIKE '2fa_%'
+            DELETE FROM $wpdb->usermeta WHERE user_id=%d AND meta_key LIKE '2fa_%'
             ";
-            $wpdb->get_results($query2);
+            $wpdb->get_results($wpdb->prepare($query2, $user_info->id));
         }
     }
 
