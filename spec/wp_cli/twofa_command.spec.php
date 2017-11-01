@@ -7,6 +7,7 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
     beforeEach(function () {
         \WP_Mock::setUp();
         $this->twoFaCommand = new \Dxw\TwoFa\WpCli\TwoFaCommand();
+        \WP_CLI::$lines = [];
     });
 
     afterEach(function () {
@@ -28,7 +29,6 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
                 ]);
             });
 
-            \WP_CLI::$lines = [];
             $this->twoFaCommand->fails([]);
             expect(\WP_CLI::$lines)->to->equal([
                 ['   5 c (a)'],
@@ -47,7 +47,6 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
                     $mock->shouldReceive('get_results')->with("QUERY")->andReturn([]);
                 });
 
-                \WP_CLI::$lines = [];
                 $this->twoFaCommand->user(['alice']);
                 expect(\WP_CLI::$lines)->to->equal([]);
             });
@@ -65,7 +64,6 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
                     ]);
                 });
 
-                \WP_CLI::$lines = [];
                 $this->twoFaCommand->user(['alice']);
                 expect(\WP_CLI::$lines)->to->equal([
                     ['user:alice override:meow failures:5 device:["mydevice"]'],
@@ -85,7 +83,6 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
                     $mock->shouldReceive('get_results')->never();
                 });
 
-                \WP_CLI::$lines = [];
                 $this->twoFaCommand->reset(['bob']);
                 expect(\WP_CLI::$lines)->to->equal([]);
             });
@@ -105,7 +102,6 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
                     $mock->shouldReceive('query')->once()->with('QUERY2');
                 });
 
-                \WP_CLI::$lines = [];
                 $this->twoFaCommand->reset(['bob']);
                 expect(\WP_CLI::$lines)->to->equal([]);
             });
