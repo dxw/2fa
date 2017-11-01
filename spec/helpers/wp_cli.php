@@ -5,6 +5,7 @@ class WP_CLI
     public static $lines = [];
     public static $commands = [];
     public static $successes = [];
+    public static $errors = [];
 
     public static function line()
     {
@@ -19,5 +20,10 @@ class WP_CLI
     public static function success()
     {
         self::$successes[] = func_get_args();
+    }
+
+    public static function error()
+    {
+        self::$errors[] = func_get_args();
     }
 }

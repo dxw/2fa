@@ -80,7 +80,9 @@ class TwoFaCommand extends \WP_CLI_Command
             ";
             $wpdb->query($wpdb->prepare($query2, $user_info->id));
             \WP_CLI::success(sprintf('Reset 2fa for user %s.', $username));
+            return;
         }
+        \WP_CLI::error(sprintf('User %s could not be found.', $username));
     }
 
     private function device_info($data)
