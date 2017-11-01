@@ -58,10 +58,6 @@ class TwoFaCommand extends \WP_CLI_Command
         if (count($result) > 0) {
             $user_info = array_shift($result);
             $device_arr = $this->device_info($user_info->devices);
-            $failures = 0;
-            if ($user_info->failures > 0) {
-                $failures = $user_info->failures;
-            }
             \WP_CLI::line(sprintf("user:%s override:%s failures:%d device:%s", $user_info->user_login, $user_info->override, $user_info->failures, json_encode($device_arr)));
         }
     }
