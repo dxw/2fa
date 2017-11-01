@@ -79,6 +79,7 @@ class TwoFaCommand extends \WP_CLI_Command
             DELETE FROM $wpdb->usermeta WHERE user_id=%d AND meta_key LIKE '2fa_%'
             ";
             $wpdb->query($wpdb->prepare($query2, $user_info->id));
+            \WP_CLI::success(sprintf('Reset 2fa for user %s.', $username));
         }
     }
 

@@ -8,6 +8,7 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
         \WP_Mock::setUp();
         $this->twoFaCommand = new \Dxw\TwoFa\WpCli\TwoFaCommand();
         \WP_CLI::$lines = [];
+        \WP_CLI::$successes = [];
     });
 
     afterEach(function () {
@@ -34,6 +35,7 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
                 ['   5 c (a)'],
                 ['   2 z (x)'],
             ]);
+            expect(\WP_CLI::$successes)->to->equal([]);
         });
     });
 
@@ -49,6 +51,7 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
 
                 $this->twoFaCommand->user(['alice']);
                 expect(\WP_CLI::$lines)->to->equal([]);
+                expect(\WP_CLI::$successes)->to->equal([]);
             });
         });
 
@@ -68,6 +71,7 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
                 expect(\WP_CLI::$lines)->to->equal([
                     ['user:alice override:meow failures:5 device:["mydevice"]'],
                 ]);
+                expect(\WP_CLI::$successes)->to->equal([]);
             });
         });
     });
@@ -85,6 +89,7 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
 
                 $this->twoFaCommand->reset(['bob']);
                 expect(\WP_CLI::$lines)->to->equal([]);
+                expect(\WP_CLI::$successes)->to->equal([]);
             });
         });
 
@@ -104,6 +109,7 @@ describe(\Dxw\TwoFa\WpCli\TwoFaCommand::class, function () {
 
                 $this->twoFaCommand->reset(['bob']);
                 expect(\WP_CLI::$lines)->to->equal([]);
+                expect(\WP_CLI::$successes)->to->equal([['Reset 2fa for user bob.']]);
             });
         });
     });
