@@ -19,6 +19,5 @@ add_action('admin_menu', function () {
         </div>
 
         <?php
-
     });
 });

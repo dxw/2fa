@@ -3,3 +3,4 @@
 /bower_components
 /tests/vendor
 /tests/.bundle
+/.php_cs.cache

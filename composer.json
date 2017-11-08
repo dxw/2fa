@@ -6,16 +6,6 @@
         "twilio/sdk": "4.2.0",
         "dxw/iguana": "^1.1"
     },
-    "require-dev": {
-        "peridot-php/peridot": "^1.18",
-        "peridot-php/leo": "^1.6",
-        "peridot-php/peridot-dot-reporter": "^1.0",
-        "dxw/phar-install": "^1.0",
-        "10up/wp_mock": "^0.1.1",
-        "mockery/mockery": "^0.9.5",
-        "php-mock/php-mock-mockery": "^1.1",
-        "friendsofphp/php-cs-fixer": "^1.12"
-    },
     "autoload": {
         "psr-4": {
             "Dxw\\TwoFa\\": "src/"
@@ -23,5 +13,15 @@
     },
     "scripts": {
         "post-update-cmd": "vendor/bin/phar-install"
+    },
+    "require-dev": {
+        "peridot-php/peridot": "^1.19",
+        "peridot-php/leo": "^1.6",
+        "peridot-php/peridot-dot-reporter": "^1.0",
+        "dxw/phar-install": "^1.0",
+        "10up/wp_mock": "^0.2.0",
+        "mockery/mockery": "^0.9",
+        "php-mock/php-mock-mockery": "^1.1",
+        "friendsofphp/php-cs-fixer": "^2.7"
     }
 }

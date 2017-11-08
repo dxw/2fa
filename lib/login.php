@@ -72,9 +72,7 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
     login_header(__('Log In'), '', $errors);
 
     if ($first_phase) {
-        // Phase 1 - user/pass form
-
-        ?>
+        // Phase 1 - user/pass form?>
 
         <form method="POST" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')) ?>" id="loginform" name="loginform">
             <p>
@@ -105,7 +103,6 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
         </form>
 
         <?php
-
     } else {
         // Phase 2 - token input
         ?>
@@ -140,7 +137,6 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
         </form>
 
         <?php
-
     }
 
     login_footer();

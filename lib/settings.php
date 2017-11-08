@@ -34,6 +34,5 @@ add_action('network_admin_menu', function () {
         </div>
 
         <?php
-
     });
 });

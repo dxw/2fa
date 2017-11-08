@@ -28,11 +28,31 @@ They have the option of using TOTP (apps like Google Authenticator) or SMS. And 
 
 Admins can also set the number of days users can skip requests for their second factor when logging in.
 
+## wp-cli command
+
+```
+% wp 2fa fails
+% wp 2fa user alice
+% wp 2fa reset bob
+```
+
 ## Tests
 
-Install the [drone CLI tool](https://github.com/drone/drone#installation) and run:
+Note: Integration tests are executed by Travis, but the "restart" button may need to be pushed a few times before they pass.
 
-    drone exec
+Unit tests and linter:
+
+```
+% composer install
+% vendor/bin/peridot spec
+% vendor/bin/php-cs-fixer fix --dry-run -v --diff
+```
+
+Integration tests:
+
+```
+% tests/run-with-docker.sh
+```
 
 ## Licence
 
