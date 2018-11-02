@@ -61,5 +61,19 @@ describe(\Dxw\TwoFa\Tokens::class, function () {
                 });
             });
         });
+
+        context('when token is not an int', function () {
+            beforeEach(function () {
+                \WP_Mock::wpFunction('get_user_meta', [
+                    'args' => [$this->userId, '2fa_'.$this->namespace.'_temporary_token_time', true],
+                    'return' => 'hello',
+                ]);
+            });
+
+            it('does something', function () {
+                $result = $this->tokens->isValid($this->namespace, $this->userId, $this->token);
+                expect($result)->to->equal(false);
+            });
+        });
     });
 });
