@@ -2,6 +2,7 @@
     "name": "dxw/2fa",
     "description": "WordPress plugin for 2 factor authentication (TOTP and SMS)",
     "type": "wordpress-plugin",
+    "license": "MIT",
     "require": {
         "christian-riesen/otp": "1.*",
         "endroid/qrcode": "1.5.0",
