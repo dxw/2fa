@@ -293,6 +293,7 @@ function twofa_sms_send_token($user_id, $numbers)
 function twofa_sms_send_login_tokens($user_id)
 {
     // Get all numbers
+    $numbers = [];
     foreach (twofa_user_devices($user_id) as $device) {
         if ($device['mode'] === 'sms') {
             $numbers[] = $device['number'];
@@ -313,7 +314,7 @@ function twofa_sms_verify_token($user_id, $token)
 {
     // Check to see if the token has expired
     //TODO: this hardcoded value should probably be a constant
-    if (time() > get_user_meta($user_id, '2fa_sms_temporary_token_time', true) + 2*60) {
+    if (time() > ((int)get_user_meta($user_id, '2fa_sms_temporary_token_time', true)) + 2*60) {
         return false;
     }
 

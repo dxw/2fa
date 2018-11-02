@@ -7,7 +7,7 @@ class Tokens
     public function isValid(string $namespace, int $userId, string $token) : bool
     {
         $currentTime = time();
-        $storedTime = get_user_meta($userId, '2fa_'.$namespace.'_temporary_token_time', true);
+        $storedTime = (int)get_user_meta($userId, '2fa_'.$namespace.'_temporary_token_time', true);
         $expiry = 2*60;
 
         if ($currentTime > ($storedTime + $expiry)) {
