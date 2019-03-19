@@ -17,7 +17,10 @@ function twofa_user_override($user_id)
 // Get whether a blog has 2fa enabled (bool)
 function twofa_blog_enabled($blawg_id)
 {
-    if (!is_multisite()) return true; // single site hack
+    if (!is_multisite()) {
+        return true;
+    } // single site hack
+
     return get_blog_option($blawg_id, '2fa_enabled') === 'yes';
 }
 
