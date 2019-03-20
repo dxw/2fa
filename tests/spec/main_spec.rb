@@ -128,7 +128,7 @@ describe "2FA" do
 
     # Get WP if we don't already have it
     system("test -f latest.zip || wget http://wordpress.org/latest.zip").should be_truthy
-    system("test -d wordpress || unzip latest.zip").should be_truthy
+    system("test -d wordpress || unzip -q latest.zip").should be_truthy
     system("rm -rf wordpress/wp-content/plugins/2fa && mkdir -p wordpress/wp-content/plugins/2fa").should be_truthy
     %w[2fa.php lib vendor.phar views src].each do |f|
       system("cp -R ../#{f} wordpress/wp-content/plugins/2fa/").should be_truthy
