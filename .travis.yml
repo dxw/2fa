@@ -4,6 +4,8 @@ services:
 php:
   - 7.0.22
   - 7.1
+  - 7.2
+  - 7.3
 before_install:
   - docker build -t 2fa_test_main tests/
 install:
