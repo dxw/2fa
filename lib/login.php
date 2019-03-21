@@ -5,7 +5,7 @@
 $get_redirect_to = function ($user) {
     if (isset($_REQUEST['redirect_to'])) {
         $redirect_to = $_REQUEST['redirect_to'];
-        // // Redirect to https if user wants ssl
+    // // Redirect to https if user wants ssl
         // if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') ) { //
         //   $redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
         // } //
