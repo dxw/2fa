@@ -10,7 +10,7 @@ docker build -t 2fa_test_main tests/
 # Get MySQL running
 docker stop 2fa_test_mysql || true
 docker rm 2fa_test_mysql || true
-docker run -d --name=2fa_test_mysql -e MYSQL_DATABASE=2fa_test -e MYSQL_ROOT_PASSWORD=foobar mysql
+docker run -d --name=2fa_test_mysql -e MYSQL_DATABASE=2fa_test -e MYSQL_ROOT_PASSWORD=foobar mysql:5.7
 export HOST=`docker inspect -f '{{.NetworkSettings.IPAddress}}' 2fa_test_mysql`
 
 # Run the tests
