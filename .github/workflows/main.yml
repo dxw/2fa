@@ -59,12 +59,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Docker build
+      - name: Run tests
         run: |
-          docker build -t 2fa_test_main tests/
-      - name: Docker start database 
-        run: |
-          docker run -d --name=2fa_test_mysql -e MYSQL_DATABASE=2fa_test -e MYSQL_ROOT_PASSWORD=foobar mysql:5.7
-      - name: Docker run tests
-        run: |
-          docker run --rm -v `pwd`:/app --link=2fa_test_mysql -e MYSQL_HOST=2fa_test_mysql -e MYSQL_PASSWORD=foobar 2fa_test_main sh -c 'bundle install && bundle exec rspec spec/*_spec.rb'
+          tests/run-with-docker.sh
