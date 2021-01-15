@@ -1,0 +1,70 @@
+name: 2fa
+
+on: push
+
+jobs:
+  peridot:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        php-versions: ['7.2', '7.4']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: gd
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - uses: actions/cache@v2
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+      - name: Install dependencies
+        run: composer install --no-interaction
+      - name: Run Peridot tests
+        run: vendor/bin/peridot spec
+  php-cs-fixer:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        php-versions: ['7.2', '7.4']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: gd
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - uses: actions/cache@v2
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+      - name: Install dependencies
+        run: composer install --no-interaction
+      - name: PHP CS fix
+        run: vendor/bin/php-cs-fixer fix --dry-run -v --diff
+  integration_tests:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docker build
+        run: |
+          docker build -t 2fa_test_main tests/
+      - name: Docker start database 
+        run: |
+          docker run -d --name=2fa_test_mysql -e MYSQL_DATABASE=2fa_test -e MYSQL_ROOT_PASSWORD=foobar mysql:5.7
+      - name: Docker run tests
+        run: |
+          docker run --rm -v `pwd`:/app --link=2fa_test_mysql -e MYSQL_HOST=2fa_test_mysql -e MYSQL_PASSWORD=foobar 2fa_test_main sh -c 'bundle install && bundle exec rspec spec/*_spec.rb'
