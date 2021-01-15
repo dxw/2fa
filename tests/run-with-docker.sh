@@ -18,4 +18,4 @@ while  STATUS=`docker inspect --format "{{.State.Health.Status}}" 2fa_test_mysql
 done
 
 # Run the tests
-docker run -ti --rm -v `pwd`:/app -e MYSQL_HOST=${HOST} -e MYSQL_PASSWORD=foobar 2fa_test_main sh -c 'bundle install && bundle exec rspec spec/*_spec.rb'
+docker run --rm -v `pwd`:/app -e MYSQL_HOST=${HOST} -e MYSQL_PASSWORD=foobar 2fa_test_main sh -c 'bundle install && bundle exec rspec spec/*_spec.rb'
