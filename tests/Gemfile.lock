@@ -33,7 +33,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.8.0)
     rspec-support (3.8.0)
-    ruby-mysql (2.9.14)
+    ruby-mysql (2.10.0)
 
 PLATFORMS
   ruby
