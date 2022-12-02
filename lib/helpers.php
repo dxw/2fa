@@ -1,6 +1,7 @@
 <?php
 
 const USER_VERIFY_TIMEOUT = 2 * 60;  // Seconds.
+const SKIP_DAYS = 30;
 
 // Get the 2fa_override option (yes/no/default)
 function twofa_user_override($user_id)
@@ -329,7 +330,7 @@ function twofa_skip_days()
     if ($value > 0) {
         return $value;
     }
-    return 30;
+    return SKIP_DAYS;
 }
 
 // Set a cookie containing:
