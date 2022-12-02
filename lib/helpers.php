@@ -320,8 +320,7 @@ function twofa_sms_verify_token($user_id, $token)
         return false;
     }
 
-    //TODO: use a constant-time string comparison function
-    return $token === get_user_meta($user_id, '2fa_sms_temporary_token', true);
+    return hash_equals(get_user_meta($user_id, '2fa_sms_temporary_token', true), $token);
 }
 
 function twofa_skip_days()
