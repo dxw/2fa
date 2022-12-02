@@ -1,7 +1,9 @@
 <?php
 
-const USER_VERIFY_TIMEOUT = 2 * 60;  // Seconds.
+const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+const DIGITS_IN_SECRET = 16;
 const SKIP_DAYS = 30;
+const USER_VERIFY_TIMEOUT = 2 * 60;  // Seconds.
 
 // Get the 2fa_override option (yes/no/default)
 function twofa_user_override($user_id)
@@ -172,16 +174,13 @@ function twofa_log_failure($user_id, $token)
 }
 
 // Generate shared secret (16 digit base32)
+// We can't just generate the secret number and convert it to base32 because
+// 32**16 > PHP_INT_MAX
 function twofa_generate_secret()
 {
-    $base32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    $digits = 16;
-
     $secret = '';
-
-    // We can't just generate the secret number and convert it to base32 because 32**16 > PHP_INT_MAX
-    for ($i = 0; $i < $digits; $i++) {
-        $secret .= substr($base32, wp_rand(0, 31), 1);
+    for ($i = 0; $i < DIGITS; $i++) {
+        $secret .= substr(BASE32, wp_rand(0, 31), 1);
     }
 
     return $secret;
