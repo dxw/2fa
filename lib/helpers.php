@@ -5,13 +5,11 @@ function twofa_user_override($user_id)
 {
     $enabled = get_user_meta($user_id, '2fa_override', true);
 
-    if ($enabled === 'yes') {
-        return 'yes';
-    } elseif ($enabled === 'no') {
-        return 'no';
+    if ($enabled !== 'yes' && $enabled !== 'no') {
+        return 'default';
     }
 
-    return 'default';
+    return $enabled;
 }
 
 // Get whether a blog has 2fa enabled (bool)
