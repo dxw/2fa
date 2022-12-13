@@ -1,17 +1,20 @@
 <?php
 
+const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+const DIGITS_IN_SECRET = 16;
+const SKIP_DAYS = 30;
+const USER_VERIFY_TIMEOUT = 2 * 60;  // Seconds.
+
 // Get the 2fa_override option (yes/no/default)
 function twofa_user_override($user_id)
 {
     $enabled = get_user_meta($user_id, '2fa_override', true);
 
-    if ($enabled === 'yes') {
-        return 'yes';
-    } elseif ($enabled === 'no') {
-        return 'no';
+    if ($enabled !== 'yes' && $enabled !== 'no') {
+        return 'default';
     }
 
-    return 'default';
+    return $enabled;
 }
 
 // Get whether a blog has 2fa enabled (bool)
@@ -171,16 +174,13 @@ function twofa_log_failure($user_id, $token)
 }
 
 // Generate shared secret (16 digit base32)
+// We can't just generate the secret number and convert it to base32 because
+// 32**16 > PHP_INT_MAX
 function twofa_generate_secret()
 {
-    $base32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    $digits = 16;
-
     $secret = '';
-
-    // We can't just generate the secret number and convert it to base32 because 32**16 > PHP_INT_MAX
-    for ($i = 0; $i < $digits; $i++) {
-        $secret .= substr($base32, wp_rand(0, 31), 1);
+    for ($i = 0; $i < DIGITS; $i++) {
+        $secret .= substr(BASE32, wp_rand(0, 31), 1);
     }
 
     return $secret;
@@ -316,13 +316,11 @@ function twofa_sms_send_login_tokens($user_id)
 function twofa_sms_verify_token($user_id, $token)
 {
     // Check to see if the token has expired
-    //TODO: this hardcoded value should probably be a constant
-    if (time() > ((int)get_user_meta($user_id, '2fa_sms_temporary_token_time', true)) + 2*60) {
+    if (time() > ((int)get_user_meta($user_id, '2fa_sms_temporary_token_time', true)) + USER_VERIFY_TIMEOUT) {
         return false;
     }
 
-    //TODO: use a constant-time string comparison function
-    return $token === get_user_meta($user_id, '2fa_sms_temporary_token', true);
+    return hash_equals(get_user_meta($user_id, '2fa_sms_temporary_token', true), $token);
 }
 
 function twofa_skip_days()
@@ -331,7 +329,7 @@ function twofa_skip_days()
     if ($value > 0) {
         return $value;
     }
-    return 30;
+    return SKIP_DAYS;
 }
 
 // Set a cookie containing:
