@@ -38,8 +38,6 @@ Admins can also set the number of days users can skip requests for their second 
 
 ## Tests
 
-Note: Integration tests are executed by Travis, but the "restart" button may need to be pushed a few times before they pass.
-
 Unit tests and linter:
 
 ```
