@@ -65,11 +65,11 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
 
     $redirect_to = $get_redirect_to($user);
 
-    do_action('login_enqueue_scripts');
-    do_action('login_head');
-
     $errors = apply_filters('wp_login_errors', $errors, $redirect_to);
     login_header(__('Log In'), '', $errors);
+
+    do_action('login_enqueue_scripts');
+    do_action('login_head');
 
     if ($first_phase) {
         // Phase 1 - user/pass form?>
