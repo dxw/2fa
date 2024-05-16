@@ -5,7 +5,7 @@ Description: Enables 2 factor authentication
 Author: dxw
 Author URI: http://dxw.com
 Network: true
-Version: 1.0.2
+Version: 1.0.3
 */
 
 $registrar = require __DIR__.'/src/load.php';
