@@ -179,7 +179,7 @@ function twofa_log_failure($user_id, $token)
 function twofa_generate_secret()
 {
     $secret = '';
-    for ($i = 0; $i < DIGITS; $i++) {
+    for ($i = 0; $i < DIGITS_IN_SECRET; $i++) {
         $secret .= substr(BASE32, wp_rand(0, 31), 1);
     }
 
