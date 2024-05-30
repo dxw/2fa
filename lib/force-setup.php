@@ -31,7 +31,7 @@ add_action('admin_init', function () {
     }
 
     if ($enabled && !$activated && !$on_2fa_page && !$ajax && $forced_for_session) {
-        wp_redirect(get_admin_url(0, 'users.php?page=2fa&step=setup'));
+        wp_redirect(get_admin_url(0, 'users.php?page=2fa&step=setup'), 302, '2fa plugin');
         exit(0);
     }
 });
