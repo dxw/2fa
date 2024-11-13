@@ -2,8 +2,6 @@
 
 describe(\Dxw\TwoFa\Tokens::class, function () {
     beforeEach(function () {
-        \WP_Mock::setUp();
-
         $this->tokens = new \Dxw\TwoFa\Tokens();
         $this->namespace = 'tricorder';
         $this->token = '123123';
@@ -12,67 +10,49 @@ describe(\Dxw\TwoFa\Tokens::class, function () {
         $this->expiry = 2*60;
         $this->userId = 3;
 
-        \phpmock\mockery\PHPMockery::mock('\\Dxw\\TwoFa', 'time')->andReturn($this->now);
-
-        \WP_Mock::wpFunction('get_user_meta', [
-            'args' => [$this->userId, '2fa_'.$this->namespace.'_temporary_token', true],
-            'return' => $this->token,
-        ]);
-    });
-
-    afterEach(function () {
-        \WP_Mock::tearDown();
+        allow('time')->toBeCalled()->andReturn($this->now);
     });
 
     describe('->tokenIsValid()', function () {
         context('when token is expired', function () {
             beforeEach(function () {
-                \WP_Mock::wpFunction('get_user_meta', [
-                    'args' => [$this->userId, '2fa_'.$this->namespace.'_temporary_token_time', true],
-                    'return' => $this->now - ($this->expiry + 1),
-                ]);
+                allow('get_user_meta')->toBeCalled()->andReturn($this->now - ($this->expiry + 1));
             });
 
             it('returns false', function () {
                 $result = $this->tokens->isValid($this->namespace, $this->userId, $this->token);
-                expect($result)->to->equal(false);
+                expect($result)->toBe(false);
             });
         });
 
         context('when token is current', function () {
             beforeEach(function () {
-                \WP_Mock::wpFunction('get_user_meta', [
-                    'args' => [$this->userId, '2fa_'.$this->namespace.'_temporary_token_time', true],
-                    'return' => $this->now - $this->expiry,
-                ]);
+                allow('get_user_meta')->toBeCalled()->andReturn($this->now - $this->expiry, $this->token);
             });
 
             context('and invalid', function () {
                 it('returns false', function () {
                     $result = $this->tokens->isValid($this->namespace, $this->userId, $this->wrongToken);
-                    expect($result)->to->equal(false);
+                    expect($result)->toBe(false);
                 });
             });
 
             context('and valid', function () {
                 it('returns true', function () {
                     $result = $this->tokens->isValid($this->namespace, $this->userId, $this->token);
-                    expect($result)->to->equal(true);
+                    expect($result)->toBe(true);
                 });
             });
         });
 
         context('when token is not an int', function () {
             beforeEach(function () {
-                \WP_Mock::wpFunction('get_user_meta', [
-                    'args' => [$this->userId, '2fa_'.$this->namespace.'_temporary_token_time', true],
-                    'return' => 'hello',
-                ]);
+                allow('get_user_meta')->toBeCalled()->andReturn('hello');
             });
 
             it('does something', function () {
                 $result = $this->tokens->isValid($this->namespace, $this->userId, $this->token);
-                expect($result)->to->equal(false);
+                expect($result)->toBe(false);
             });
         });
     });
