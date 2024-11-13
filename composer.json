@@ -5,7 +5,7 @@
     "license": "MIT",
     "config": {
       "platform": {
-        "php": "7.2"
+        "php": "8.2"
       }
     },
     "require": {
