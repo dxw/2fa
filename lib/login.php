@@ -3,76 +3,76 @@
 // Gets the filtered value of the redirect_to parameter (string)
 // Taken from wp-login.php
 $get_redirect_to = function ($user) {
-    if (isset($_REQUEST['redirect_to'])) {
-        $redirect_to = $_REQUEST['redirect_to'];
-    // // Redirect to https if user wants ssl
-        // if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') ) { //
-        //   $redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
-        // } //
-    } else {
-        $redirect_to = admin_url();
-    }
+	if (isset($_REQUEST['redirect_to'])) {
+		$redirect_to = $_REQUEST['redirect_to'];
+		// // Redirect to https if user wants ssl
+		// if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') ) { //
+		//   $redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
+		// } //
+	} else {
+		$redirect_to = admin_url();
+	}
 
-    $requested_redirect_to = isset($_REQUEST['redirect_to']) ? $_REQUEST['redirect_to'] : '';
-    return apply_filters('login_redirect', $redirect_to, $requested_redirect_to, $user);
+	$requested_redirect_to = isset($_REQUEST['redirect_to']) ? $_REQUEST['redirect_to'] : '';
+	return apply_filters('login_redirect', $redirect_to, $requested_redirect_to, $user);
 };
 
 // Uses wp_safe_redirect()
 // Taken from wp-login.php
 $redirect = function ($user) use ($get_redirect_to) {
-    global $interim_login;
+	global $interim_login;
 
-    if ($interim_login) {
-        $message = '<p class="message">' . __('You have logged in successfully.') . '</p>';
-        $interim_login = 'success';
-        login_header('', $message); ?>
+	if ($interim_login) {
+		$message = '<p class="message">' . __('You have logged in successfully.') . '</p>';
+		$interim_login = 'success';
+		login_header('', $message); ?>
         <?php
-        do_action('login_footer'); ?>
+		do_action('login_footer'); ?>
         </body></html>
         <?php
-        exit;
-    }
+		exit;
+	}
 
-    $redirect_to = $get_redirect_to($user);
-    // Copied verbatim from wp-login.php
+	$redirect_to = $get_redirect_to($user);
+	// Copied verbatim from wp-login.php
 
-    if ((empty($redirect_to) || $redirect_to == 'wp-admin/' || $redirect_to == admin_url())) {
-        // If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.
-        if (is_multisite() && !get_active_blog_for_user($user->ID) && !is_super_admin($user->ID)) {
-            $redirect_to = user_admin_url();
-        } elseif (is_multisite() && !$user->has_cap('read')) {
-            $redirect_to = get_dashboard_url($user->ID);
-        } elseif (!$user->has_cap('edit_posts')) {
-            $redirect_to = admin_url('profile.php');
-        }
-    }
+	if ((empty($redirect_to) || $redirect_to == 'wp-admin/' || $redirect_to == admin_url())) {
+		// If the user doesn't belong to a blog, send them to user admin. If the user can't edit posts, send them to their profile.
+		if (is_multisite() && !get_active_blog_for_user($user->ID) && !is_super_admin($user->ID)) {
+			$redirect_to = user_admin_url();
+		} elseif (is_multisite() && !$user->has_cap('read')) {
+			$redirect_to = get_dashboard_url($user->ID);
+		} elseif (!$user->has_cap('edit_posts')) {
+			$redirect_to = admin_url('profile.php');
+		}
+	}
 
-    wp_safe_redirect($redirect_to);
-    exit();
+	wp_safe_redirect($redirect_to);
+	exit();
 };
 
 // Renders the HTML of the login form
 $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_to) {
-    global $interim_login;
+	global $interim_login;
 
-    $first_phase = $phase === 1;
+	$first_phase = $phase === 1;
 
-    $user = get_user_by('id', $user_id);
-    $user_login = '';
-    if ($user !== false) {
-        $user_login = $user->user_login;
-    }
+	$user = get_user_by('id', $user_id);
+	$user_login = '';
+	if ($user !== false) {
+		$user_login = $user->user_login;
+	}
 
-    $redirect_to = $get_redirect_to($user);
+	$redirect_to = $get_redirect_to($user);
 
-    $errors = apply_filters('wp_login_errors', $errors, $redirect_to);
-    login_header(__('Log In'), '', $errors);
+	$errors = apply_filters('wp_login_errors', $errors, $redirect_to);
+	login_header(__('Log In'), '', $errors);
 
-    do_action('login_enqueue_scripts');
-    do_action('login_head');
+	do_action('login_enqueue_scripts');
+	do_action('login_head');
 
-    if ($first_phase) {
-        // Phase 1 - user/pass form?>
+	if ($first_phase) {
+		// Phase 1 - user/pass form?>
 
         <form method="POST" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')) ?>" id="loginform" name="loginform">
             <p>
@@ -103,9 +103,9 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
         </form>
 
         <?php
-    } else {
-        // Phase 2 - token input
-        ?>
+	} else {
+		// Phase 2 - token input
+		?>
 
         <form method="POST" action="<?php echo esc_url(site_url('wp-login.php', 'login_post')) ?>" id="loginform" name="loginform">
             <p>
@@ -137,106 +137,106 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
         </form>
 
         <?php
-    }
+	}
 
-    login_footer();
-    exit(0);
+	login_footer();
+	exit(0);
 };
 
 function twofa_wp_set_auth_cookie($user_id, $rememberme)
 {
-    wp_set_auth_cookie($user_id, $rememberme);
+	wp_set_auth_cookie($user_id, $rememberme);
 
-    $user = get_user_by('ID', $user_id);
-    do_action('wp_login', $user->user_login, $user);
+	$user = get_user_by('ID', $user_id);
+	do_action('wp_login', $user->user_login, $user);
 }
 
 // Replaces the stock WordPress login form with our own
 add_action('login_form_login', function () use ($redirect, $render) {
-    global $interim_login;
+	global $interim_login;
 
-    // An interim login is where you're in the middle of editing a post and you get logged out
-    // An interim login prompt appears and asks you to sign in again
-    $interim_login = isset($_REQUEST['interim-login']);
+	// An interim login is where you're in the middle of editing a post and you get logged out
+	// An interim login prompt appears and asks you to sign in again
+	$interim_login = isset($_REQUEST['interim-login']);
 
-    $errors = new WP_Error;
+	$errors = new WP_Error();
 
-    // Phase 1
+	// Phase 1
 
-    if (isset($_POST['log']) && isset($_POST['pwd'])) {
-        // Verify credentials
-        $user = wp_authenticate($_POST['log'], $_POST['pwd']);
+	if (isset($_POST['log']) && isset($_POST['pwd'])) {
+		// Verify credentials
+		$user = wp_authenticate($_POST['log'], $_POST['pwd']);
 
-        if (is_wp_error($user)) {
-            $render(1, $user, null, null);
-        }
+		if (is_wp_error($user)) {
+			$render(1, $user, null, null);
+		}
 
-        if (twofa_verify_skip_cookie($user->ID) || !twofa_user_activated($user->ID)) {
-            // If the user has a valid skip cookier or haven't got 2FA set up, log them in
+		if (twofa_verify_skip_cookie($user->ID) || !twofa_user_activated($user->ID)) {
+			// If the user has a valid skip cookier or haven't got 2FA set up, log them in
 
-            $rememberme = isset($_POST['rememberme']);
-            twofa_wp_set_auth_cookie($user->ID, $rememberme);
-            $redirect($user);
-        } else {
-            // Otherwise, send them to phase 2
+			$rememberme = isset($_POST['rememberme']);
+			twofa_wp_set_auth_cookie($user->ID, $rememberme);
+			$redirect($user);
+		} else {
+			// Otherwise, send them to phase 2
 
-            // But first send an SMS or email if they have that activated
-            twofa_sms_send_login_tokens($user->ID);
-            $emailLogin = new \Dxw\TwoFa\EmailLogin();
-            $emailLogin->sendLoginTokens($user->ID);
+			// But first send an SMS or email if they have that activated
+			twofa_sms_send_login_tokens($user->ID);
+			$emailLogin = new \Dxw\TwoFa\EmailLogin();
+			$emailLogin->sendLoginTokens($user->ID);
 
-            $render(2, null, null, $user->ID);
-        }
-    }
+			$render(2, null, null, $user->ID);
+		}
+	}
 
-    // Phase 2
+	// Phase 2
 
-    if (isset($_POST['token']) && isset($_POST['user_id']) && isset($_POST['nonce'])) {
-        $user_id = absint($_POST['user_id']);
+	if (isset($_POST['token']) && isset($_POST['user_id']) && isset($_POST['nonce'])) {
+		$user_id = absint($_POST['user_id']);
 
-        if ($user_id <= 0) {
-            $errors->add('bad_user_id', __('An error has occurred. Please try again.'));
-            $render(1, $errors, null, null);
-        }
+		if ($user_id <= 0) {
+			$errors->add('bad_user_id', __('An error has occurred. Please try again.'));
+			$render(1, $errors, null, null);
+		}
 
-        if (twofa_bruteforce_login_show_captcha($user_id)) {
-            $recaptcha = new \ReCaptcha\ReCaptcha(RECAPTCHA_PRIVATE_KEY);
-            $resp = $recaptcha->verify(stripslashes($_POST['g-recaptcha-response']), $_SERVER['REMOTE_ADDR']);
-            if (!$resp->isSuccess()) {
-                $errors->add('invalid_captcha', __('Invalid CAPTCHA. Try again.'));
-                $render(2, $errors, null, $user_id);
-            }
-        }
+		if (twofa_bruteforce_login_show_captcha($user_id)) {
+			$recaptcha = new \ReCaptcha\ReCaptcha(RECAPTCHA_PRIVATE_KEY);
+			$resp = $recaptcha->verify(stripslashes($_POST['g-recaptcha-response']), $_SERVER['REMOTE_ADDR']);
+			if (!$resp->isSuccess()) {
+				$errors->add('invalid_captcha', __('Invalid CAPTCHA. Try again.'));
+				$render(2, $errors, null, $user_id);
+			}
+		}
 
-        if (!wp_verify_nonce($_POST['nonce'], '2fa_phase2_'.$user_id)) {
-            $errors->add('invalid_nonce', __('An error occurred. Please try again.'));
-            $render(1, $errors, null, null);
-        }
+		if (!wp_verify_nonce($_POST['nonce'], '2fa_phase2_'.$user_id)) {
+			$errors->add('invalid_nonce', __('An error occurred. Please try again.'));
+			$render(1, $errors, null, null);
+		}
 
-        $token = preg_replace('_[^0-9]_', '', $_POST['token']);
-        if (!twofa_user_verify_token($user_id, $token)) {
-            $errors->add('invalid_token', __('Invalid code. Try again or go back to the previous screen and reenter your login details. Make sure you’re using one of your activated devices.'));
+		$token = preg_replace('_[^0-9]_', '', $_POST['token']);
+		if (!twofa_user_verify_token($user_id, $token)) {
+			$errors->add('invalid_token', __('Invalid code. Try again or go back to the previous screen and reenter your login details. Make sure you’re using one of your activated devices.'));
 
-            // Report failed login attempt
-            twofa_log_failure($user_id, $token);
-            twofa_bruteforce_login_failure($user_id);
+			// Report failed login attempt
+			twofa_log_failure($user_id, $token);
+			twofa_bruteforce_login_failure($user_id);
 
-            $render(2, $errors, null, $user_id);
-        }
+			$render(2, $errors, null, $user_id);
+		}
 
-        $rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
-        twofa_wp_set_auth_cookie($user_id, $rememberme);
+		$rememberme = isset($_POST['rememberme']) && $_POST['rememberme'] === 'yes';
+		twofa_wp_set_auth_cookie($user_id, $rememberme);
 
-        if (isset($_POST['skip_2fa']) && $_POST['skip_2fa'] === 'yes') {
-            twofa_set_skip_cookie($user_id);
-        }
+		if (isset($_POST['skip_2fa']) && $_POST['skip_2fa'] === 'yes') {
+			twofa_set_skip_cookie($user_id);
+		}
 
-        // Reset captcha
-        twofa_bruteforce_login_success($user_id);
+		// Reset captcha
+		twofa_bruteforce_login_success($user_id);
 
-        $redirect(get_user_by('id', $user_id));
-    }
+		$redirect(get_user_by('id', $user_id));
+	}
 
-    $render(1, $errors, null, null);
-    exit(0);
+	$render(1, $errors, null, null);
+	exit(0);
 });

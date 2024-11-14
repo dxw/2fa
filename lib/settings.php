@@ -1,11 +1,11 @@
 <?php
 
 add_action('network_admin_menu', function () {
-    add_submenu_page('settings.php', '2 Factor Authentication', '2 Factor Authentication', 'manage_options', '2fa-settings', function () {
-        if (isset($_POST['_wpnonce']) && isset($_POST['skip_days']) && wp_verify_nonce($_POST['_wpnonce'], '2fa-settings')) {
-            $skip_days = absint($_POST['skip_days']);
-            update_site_option('2fa_skip_days', $skip_days);
-        } ?>
+	add_submenu_page('settings.php', '2 Factor Authentication', '2 Factor Authentication', 'manage_options', '2fa-settings', function () {
+		if (isset($_POST['_wpnonce']) && isset($_POST['skip_days']) && wp_verify_nonce($_POST['_wpnonce'], '2fa-settings')) {
+			$skip_days = absint($_POST['skip_days']);
+			update_site_option('2fa_skip_days', $skip_days);
+		} ?>
 
         <div class="wrap">
             <h2>2 Factor Authentication</h2>
@@ -34,5 +34,5 @@ add_action('network_admin_menu', function () {
         </div>
 
         <?php
-    });
+	});
 });
