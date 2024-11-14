@@ -15,7 +15,7 @@ HOST=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' 2fa_test_mysql)
 export HOST
 while  STATUS=$(docker inspect --format "{{.State.Health.Status}}" 2fa_test_mysql); [ "$STATUS" != "healthy" ]; do
     echo "waiting for database"
-    sleep 1
+    sleep 5
 done
 
 # Run the tests

@@ -1,438 +1,270 @@
 <?php
 
 describe(\Dxw\TwoFa\SetupEmail::class, function () {
-    beforeEach(function () {
-        \WP_Mock::setUp();
+	beforeEach(function () {
+		$this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([]));
 
-        $this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([]));
+		$this->userId = 123;
+		$this->userEmail = 'test@dxw.com';
+		allow('get_current_user_id')->toBeCalled()->andReturn($this->userId);
+		$this->token = '123123';
+		$this->invalidToken = '456456';
 
-        $this->userId = 123;
-        $this->userEmail = 'test@dxw.com';
-        \WP_Mock::wpFunction('get_current_user_id', [
-            'return' => $this->userId,
-        ]);
-        $this->token = '123123';
-        $this->invalidToken = '456456';
+		$this->now = 777;
+		$this->nonce = 'foobar';
 
-        $this->now = 777;
-        $this->nonce = 'foobar';
+		$this->expiration = 2 * 60;
+		allow('time')->toBeCalled()->andReturn($this->now);
+	});
 
-        $this->expiration = 2*60;
+	it('is registerable', function () {
+		expect($this->setupEmail)->toBeAnInstanceOf(\Dxw\Iguana\Registerable::class);
+	});
 
-        \phpmock\mockery\PHPMockery::mock('\\Dxw\\TwoFa', 'time')->andReturn($this->now);
-    });
+	describe('->register()', function () {
+		it('registers the hooks', function () {
+			allow('add_action')->toBeCalled();
+			expect('add_action')->toBeCalled()->once()->with('wp_ajax_2fa_email_send_verification', [$this->setupEmail, 'sendVerification']);
+			expect('add_action')->toBeCalled()->once()->with('wp_ajax_2fa_email_verify', [$this->setupEmail, 'verify']);
+			$this->setupEmail->register();
+		});
+	});
 
-    afterEach(function () {
-        \WP_Mock::tearDown();
-        \Mockery::close();
-    });
+	describe('->sendVerification()', function () {
+		context('with empty nonce', function () {
+			beforeEach(function () {
+				$this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
+				]));
+			});
 
-    it('is registerable', function () {
-        expect($this->setupEmail)->to->be->instanceof(\Dxw\Iguana\Registerable::class);
-    });
+			it('gives an invalid nonce error if nonce empty', function () {
+				allow('twofa_json')->toBeCalled();
+				expect('twofa_json')->toBeCalled()->once()->with([
+					'error' => true,
+					'reason' => 'invalid nonce',
+				]);
 
-    describe('->register()', function () {
-        it('registers the hooks', function () {
-            \WP_Mock::expectActionAdded('wp_ajax_2fa_email_send_verification', [$this->setupEmail, 'sendVerification']);
-            \WP_Mock::expectActionAdded('wp_ajax_2fa_email_verify', [$this->setupEmail, 'verify']);
-            $this->setupEmail->register();
-        });
-    });
+				$this->setupEmail->sendVerification();
+			});
+		});
 
-    describe('->sendVerification()', function () {
-        context('with empty nonce', function () {
-            beforeEach(function () {
-                $this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
-                ]));
-            });
+		context('with invalid nonce', function () {
+			beforeEach(function () {
+				$this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
+					'nonce' => $this->nonce,
+				]));
+				allow('wp_verify_nonce')->toBeCalled()->andReturn(false);
+			});
 
-            it('gives an invalid nonce error if nonce empty', function () {
-                \WP_Mock::wpFunction('twofa_json', [
-                    'times' => 1,
-                    'args' => [
-                        [
-                            'error' => true,
-                            'reason' => 'invalid nonce',
-                        ],
-                    ]
-                ]);
-                $this->setupEmail->sendVerification();
-            });
-        });
+			it('gives nonce error if does not match', function () {
+				allow('twofa_json')->toBeCalled();
+				expect('twofa_json')->toBeCalled()->once()->with([
+					'error' => true,
+					'reason' => 'invalid nonce',
+				]);
+				$this->setupEmail->sendVerification();
+			});
+		});
 
-        context('with invalid nonce', function () {
-            beforeEach(function () {
-                $this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
-                    'nonce' => $this->nonce,
-                ]));
-                \WP_Mock::wpFunction('wp_verify_nonce', [
-                    'return' => false,
-                ]);
-            });
+		context('with valid nonce', function () {
+			beforeEach(function () {
+				$this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
+					'nonce' => $this->nonce,
+				]));
 
-            it('gives nonce error if does not match', function () {
-                \WP_Mock::wpFunction('twofa_json', [
-                    'times' => 1,
-                    'args' => [
-                        [
-                            'error' => true,
-                            'reason' => 'invalid nonce',
-                        ],
-                    ]
-                ]);
-                $this->setupEmail->sendVerification();
-            });
-        });
+				allow('wp_verify_nonce')->toBeCalled()->andReturn(true);
+			});
 
-        context('with valid nonce', function () {
-            beforeEach(function () {
-                $this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
-                    'nonce' => $this->nonce,
-                ]));
+			context('get_user_by returns error', function () {
+				beforeEach(function () {
+					allow('get_user_by')->toBeCalled()->andReturn(false);
+				});
 
-                \WP_Mock::wpFunction('wp_verify_nonce', [
-                    'return' => true,
-                    'args' => [$this->nonce, '2fa_email_send_verification'],
-                ]);
-            });
+				it('calls twofa_json and does not send email', function () {
+					allow('update_user_meta')->toBeCalled();
+					expect('update_user_meta')->toBeCalled()->once()->with($this->userId, '2fa_email_temporary_token', $this->token);
+					expect('update_user_meta')->toBeCalled()->once()->with($this->userId, '2fa_email_temporary_token_time', $this->now);
+					allow('twofa_generate_token')->toBeCalled()->andReturn($this->token);
+					expect('wp_mail')->not->toBeCalled();
+					allow('twofa_json')->toBeCalled();
+					expect('twofa_json')->toBeCalled()->once()->with([
+						'error' => true,
+						'reason' => 'get_user_by failed'
+					]);
 
-            context('get_user_by returns error', function () {
-                beforeEach(function () {
-                    \WP_Mock::wpFunction('get_user_by', [
-                        'args' => ['ID', $this->userId],
-                        'return' => false,
-                    ]);
-                });
+					$this->setupEmail->sendVerification();
+				});
+			});
 
-                it('calls twofa_json and does not send email', function () {
-                    \WP_Mock::wpFunction('update_user_meta', [
-                        'times' => 1,
-                        'args' => [
-                            $this->userId,
-                            '2fa_email_temporary_token',
-                            $this->token
-                        ],
-                    ]);
-                    \WP_Mock::wpFunction('update_user_meta', [
-                        'times' => 1,
-                        'args' => [
-                            $this->userId,
-                            '2fa_email_temporary_token_time',
-                            $this->now,
-                        ],
-                    ]);
-                    \WP_Mock::wpFunction('twofa_generate_token', [
-                        'return' => $this->token,
-                    ]);
+			context('get_user_by returns user', function () {
+				beforeEach(function () {
+					allow('get_user_by')->toBeCalled()->andReturn((object) [
+						'data' => (object) [
+							'user_email' => $this->userEmail,
+						],
+					]);
+				});
 
-                    \WP_Mock::wpFunction('wp_mail', [
-                        'times' => 0,
-                    ]);
-                    \WP_Mock::wpFunction('twofa_json', [
-                        'times' => 1,
-                        'args' => [[
-                            'error' => true,
-                            'reason' => 'get_user_by failed',
-                        ]],
-                    ]);
+				context('wp_mail fails', function () {
+					it('updates user_meta and sends email', function () {
+						allow('update_user_meta')->toBeCalled();
+						expect('update_user_meta')->toBeCalled()->once()->with($this->userId, '2fa_email_temporary_token', $this->token);
+						expect('update_user_meta')->toBeCalled()->once()->with($this->userId, '2fa_email_temporary_token_time', $this->now);
+						allow('twofa_generate_token')->toBeCalled()->andReturn($this->token);
+						allow('wp_mail')->toBeCalled()->andReturn(false);
+						allow('twofa_json')->toBeCalled();
+						expect('twofa_json')->toBeCalled()->once()->with([
+						'error' => true,
+						'reason' => 'wp_mail failed'
+						]);
 
-                    $this->setupEmail->sendVerification();
-                });
-            });
+						$this->setupEmail->sendVerification();
+					});
+				});
 
-            context('get_user_by returns user', function () {
-                beforeEach(function () {
-                    \WP_Mock::wpFunction('get_user_by', [
-                        'args' => ['ID', $this->userId],
-                        'return' => (object) [
-                            'data' => (object) [
-                                'user_email' => $this->userEmail,
-                            ],
-                        ],
-                    ]);
-                });
+				context('wp_mail succeeds', function () {
+					it('updates user_meta and sends email', function () {
+						allow('update_user_meta')->toBeCalled();
+						expect('update_user_meta')->toBeCalled()->once()->with($this->userId, '2fa_email_temporary_token', $this->token);
+						expect('update_user_meta')->toBeCalled()->once()->with($this->userId, '2fa_email_temporary_token_time', $this->now);
+						allow('twofa_generate_token')->toBeCalled()->andReturn($this->token, '777777');
+						allow('wp_mail')->toBeCalled()->andReturn(true);
+						expect('wp_mail')->toBeCalled()->once()->with($this->userEmail, '2FA', 'Verification code: ' . $this->token);
+						allow('twofa_json')->toBeCalled();
+						expect('twofa_json')->toBeCalled()->once()->with([
+							'email_sent' => true
+						]);
 
-                context('wp_mail fails', function () {
-                    it('updates user_meta and sends email', function () {
-                        \WP_Mock::wpFunction('update_user_meta', [
-                            'times' => 1,
-                            'args' => [
-                                $this->userId,
-                                '2fa_email_temporary_token',
-                                $this->token,
-                            ],
-                        ]);
-                        \WP_Mock::wpFunction('update_user_meta', [
-                            'times' => 1,
-                            'args' => [
-                                $this->userId,
-                                '2fa_email_temporary_token_time',
-                                $this->now,
-                            ],
-                        ]);
-                        \WP_Mock::wpFunction('twofa_generate_token', [
-                            'return' => $this->token,
-                        ]);
-                        \WP_Mock::wpFunction('twofa_json', [
-                            'times' => 0,
-                        ]);
+						$this->setupEmail->sendVerification();
+					});
+				});
+			});
+		});
+	});
 
-                        \WP_Mock::wpFunction('wp_mail', [
-                            'times' => 1,
-                            'returns' => false,
-                        ]);
+	describe('->verify()', function () {
+		context('with empty nonce', function () {
+			beforeEach(function () {
+				$this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([]));
+			});
 
-                        \WP_Mock::wpFunction('twofa_json', [
-                            'args' => [[
-                                'error' => true,
-                                'reason' => 'wp_mail failed',
-                            ]],
-                            'times' => 1,
-                        ]);
+			it('gives an invalid nonce error', function () {
+				allow('twofa_json')->toBeCalled();
+				expect('twofa_json')->toBeCalled()->once()->with([
+					'error' => true,
+					'reason' => 'invalid nonce'
+				]);
 
-                        $this->setupEmail->sendVerification();
-                    });
-                });
+				$this->setupEmail->verify();
+			});
+		});
 
-                context('wp_mail succeeds', function () {
-                    it('updates user_meta and sends email', function () {
-                        \WP_Mock::wpFunction('update_user_meta', [
-                            'times' => 1,
-                            'args' => [
-                                $this->userId,
-                                '2fa_email_temporary_token',
-                                $this->token,
-                            ],
-                        ]);
-                        \WP_Mock::wpFunction('update_user_meta', [
-                            'times' => 1,
-                            'args' => [
-                                $this->userId,
-                                '2fa_email_temporary_token_time',
-                                $this->now,
-                            ],
-                        ]);
-                        \WP_Mock::wpFunction('twofa_generate_token', [
-                            'return_in_order' => [$this->token, '777777'],
-                        ]);
-                        \WP_Mock::wpFunction('twofa_json', [
-                            'times' => 0,
-                        ]);
+		context('with invalid nonce', function () {
+			beforeEach(function () {
+				$this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
+					'nonce' => $this->nonce,
+				]));
+				allow('wp_verify_nonce')->toBeCalled()->andReturn(false);
+			});
 
-                        \WP_Mock::wpFunction('wp_mail', [
-                            'args' => [
-                                $this->userEmail,
-                                '2FA',
-                                'Verification code: '.$this->token,
-                            ],
-                            'times' => 1,
-                            'return' => true,
-                        ]);
+			it('gives an invalid nonce error', function () {
+				allow('twofa_json')->toBeCalled();
+				expect('twofa_json')->toBeCalled()->once()->with([
+					'error' => true,
+					'reason' => 'invalid nonce'
+				]);
 
-                        \WP_Mock::wpFunction('twofa_json', [
-                            'args' => [[
-                                'email_sent' => true,
-                            ]],
-                            'times' => 1,
-                        ]);
+				$this->setupEmail->verify();
+			});
+		});
 
-                        $this->setupEmail->sendVerification();
-                    });
-                });
-            });
-        });
-    });
+		context('with valid nonce', function () {
+			beforeEach(function () {
+				$this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
+					'nonce' => $this->nonce,
+				]));
+				allow('wp_verify_nonce')->toBeCalled()->andReturn(true);
+			});
 
-    describe('->verify()', function () {
-        context('with empty nonce', function () {
-            beforeEach(function () {
-                $this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([]));
-            });
+			context('with empty token', function () {
+				beforeEach(function () {
+					$this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
+						'nonce' => $this->nonce,
+						'token' => '',
+					]));
+				});
 
-            it('gives an invalid nonce error', function () {
-                \WP_Mock::wpFunction('twofa_json', [
-                    'times' => 1,
-                    'args' => [
-                        [
-                            'error' => true,
-                            'reason' => 'invalid nonce',
-                        ],
-                    ]
-                ]);
-                $this->setupEmail->verify();
-            });
-        });
+				it('produces error', function () {
+					allow('twofa_json')->toBeCalled();
+					expect('twofa_json')->toBeCalled()->once()->with([
+						'error' => true,
+						'reason' => 'missing token'
+					]);
 
-        context('with invalid nonce', function () {
-            beforeEach(function () {
-                $this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
-                    'nonce' => $this->nonce,
-                ]));
-                \WP_Mock::wpFunction('wp_verify_nonce', [
-                    'return' => false,
-                ]);
-            });
+					$this->setupEmail->verify();
+				});
+			});
 
-            it('gives an invalid nonce error', function () {
-                \WP_Mock::wpFunction('twofa_json', [
-                    'times' => 1,
-                    'args' => [
-                        [
-                            'error' => true,
-                            'reason' => 'invalid nonce',
-                        ],
-                    ]
-                ]);
-                $this->setupEmail->verify();
-            });
-        });
+			context('with a token', function () {
+				beforeEach(function () {
+					$this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
+						'nonce' => $this->nonce,
+						'token' => $this->token,
+					]));
+				});
 
-        context('with valid nonce', function () {
-            beforeEach(function () {
-                $this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
-                    'nonce' => $this->nonce,
-                ]));
-                \WP_Mock::wpFunction('wp_verify_nonce', [
-                    'args' => [$this->nonce, '2fa_email_verify'],
-                    'return' => true,
-                ]);
-            });
+				context('(which is expired)', function () {
+					beforeEach(function () {
+						allow('get_user_meta')->toBeCalled()->andReturn($this->now - ($this->expiration + 1));
+					});
 
-            context('with empty token', function () {
-                beforeEach(function () {
-                    $this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
-                        'nonce' => $this->nonce,
-                        'token' => '',
-                    ]));
-                });
+					it('reports invalid token', function () {
+						allow('twofa_json')->toBeCalled();
+						expect('twofa_json')->toBeCalled()->once()->with([
+							'valid' => false
+						]);
 
-                it('produces error', function () {
-                    \WP_Mock::wpFunction('twofa_json', [
-                        'times' => 1,
-                        'args' => [[
-                            'error' => true,
-                            'reason' => 'missing token',
-                        ]],
-                    ]);
+						$this->setupEmail->verify();
+					});
+				});
 
-                    $this->setupEmail->verify();
-                });
-            });
+				context('(which is invalid)', function () {
+					beforeEach(function () {
+						allow('get_user_meta')->toBeCalled()->andReturn($this->now - $this->expiration, $this->invalidToken);
+					});
 
-            context('with a token', function () {
-                beforeEach(function () {
-                    $this->setupEmail = new \Dxw\TwoFa\SetupEmail(new \Dxw\Iguana\Value\Post([
-                        'nonce' => $this->nonce,
-                        'token' => $this->token,
-                    ]));
-                });
+					it('reports invalid token', function () {
+						allow('twofa_json')->toBeCalled();
+						expect('twofa_json')->toBeCalled()->once()->with([
+							'valid' => false
+						]);
+						$this->setupEmail->verify();
+					});
+				});
 
-                context('(which is expired)', function () {
-                    beforeEach(function () {
-                        \WP_Mock::wpFunction('get_user_meta', [
-                            'args' => [
-                                $this->userId,
-                                '2fa_email_temporary_token_time',
-                                true,
-                            ],
-                            'return' => $this->now - ($this->expiration + 1),
-                        ]);
-                    });
+				context('(which is valid)', function () {
+					beforeEach(function () {
+						allow('get_user_meta')->toBeCalled()->andReturn($this->now - $this->expiration, $this->token);
+					});
 
-                    it('reports invalid token', function () {
-                        \WP_Mock::wpFunction('twofa_json', [
-                            'times' => 1,
-                            'args' => [[
-                                'valid' => false,
-                            ]],
-                        ]);
-                        $this->setupEmail->verify();
-                    });
-                });
+					it('reports valid token', function () {
+						allow('twofa_json')->toBeCalled();
+						expect('twofa_json')->toBeCalled()->once()->with([
+							'valid' => true
+						]);
 
-                context('(which is invalid)', function () {
-                    beforeEach(function () {
-                        \WP_Mock::wpFunction('get_user_meta', [
-                            'args' => [
-                                $this->userId,
-                                '2fa_email_temporary_token_time',
-                                true,
-                            ],
-                            'return' => $this->now - $this->expiration,
-                        ]);
+						allow('twofa_add_device')->toBeCalled();
+						expect('twofa_add_device')->toBeCalled()->once()->with($this->userId, [
+							'mode' => 'email'
+						]);
 
-                        \WP_Mock::wpFunction('get_user_meta', [
-                            'args' => [
-                                $this->userId,
-                                '2fa_email_temporary_token',
-                                true,
-                            ],
-                            'return' => $this->invalidToken,
-                        ]);
-                    });
+						allow('delete_user_meta')->toBeCalled();
+						expect('delete_user_meta')->toBeCalled()->once()->with($this->userId, '2fa_temporary_token');
 
-                    it('reports invalid token', function () {
-                        \WP_Mock::wpFunction('twofa_json', [
-                            'times' => 1,
-                            'args' => [[
-                                'valid' => false,
-                            ]],
-                        ]);
-                        $this->setupEmail->verify();
-                    });
-                });
-
-                context('(which is valid)', function () {
-                    beforeEach(function () {
-                        \WP_Mock::wpFunction('get_user_meta', [
-                            'args' => [
-                                $this->userId,
-                                '2fa_email_temporary_token_time',
-                                true,
-                            ],
-                            'return' => $this->now - $this->expiration,
-                        ]);
-
-                        \WP_Mock::wpFunction('get_user_meta', [
-                            'args' => [
-                                $this->userId,
-                                '2fa_email_temporary_token',
-                                true,
-                            ],
-                            'return' => $this->token,
-                        ]);
-                    });
-
-                    it('reports valid token', function () {
-                        \WP_Mock::wpFunction('twofa_json', [
-                            'times' => 1,
-                            'args' => [[
-                                'valid' => true,
-                            ]],
-                        ]);
-
-                        \WP_Mock::wpFunction('twofa_add_device', [
-                            'args' => [
-                                $this->userId,
-                                [
-                                    'mode' => 'email',
-                                ],
-                            ],
-                            'times' => 1,
-                        ]);
-
-                        \WP_Mock::wpFunction('delete_user_meta', [
-                            'args' => [
-                                $this->userId,
-                                '2fa_temporary_token',
-                            ],
-                            'times' => 1,
-                        ]);
-
-                        $this->setupEmail->verify();
-                    });
-                });
-            });
-        });
-    });
+						$this->setupEmail->verify();
+					});
+				});
+			});
+		});
+	});
 });

@@ -1,139 +1,102 @@
 <?php
 
 describe(\Dxw\TwoFa\EmailLogin::class, function () {
-    beforeEach(function () {
-        \WP_Mock::setUp();
+	beforeEach(function () {
+		$this->emailLogin = new \Dxw\TwoFa\EmailLogin();
+		$this->userId = 8;
+		$this->token = '111111';
+		$this->now = 777;
+		$this->userEmail = 'test@dxw.com';
 
-        $this->emailLogin = new \Dxw\TwoFa\EmailLogin();
-        $this->userId = 8;
-        $this->token = '111111';
-        $this->now = 777;
-        $this->userEmail = 'test@dxw.com';
+		allow('time')->toBeCalled()->andReturn($this->now);
+		allow('twofa_generate_token')->toBeCalled()->andReturn($this->token, null);
+	});
 
-        \phpmock\mockery\PHPMockery::mock('\\Dxw\\TwoFa', 'time')->andReturn($this->now);
+	describe('->sendLoginTokens()', function () {
+		context('when there are no "email" devices', function () {
+			beforeEach(function () {
+				allow('twofa_user_devices')->toBeCalled()->andReturn([
+					[
+						'mode' => 'sms',
+					],
+					[
+						'mode' => 'totp',
+					],
+				]);
+			});
 
-        \WP_Mock::wpFunction('twofa_generate_token', [
-            'return_in_order' => [$this->token, null],
-        ]);
-    });
+			it('does nothing', function () {
+				expect('twofa_generate_token')->not->toBeCalled();
+				$this->emailLogin->sendLoginTokens($this->userId);
+			});
+		});
 
-    afterEach(function () {
-        \WP_Mock::tearDown();
-    });
+		context('when there is one "email" device', function () {
+			beforeEach(function () {
+				allow('twofa_user_devices')->toBeCalled()->andReturn([
+					[
+						'mode' => 'sms',
+					],
+					[
+						'mode' => 'email',
+					],
+				]);
+			});
 
-    describe('->sendLoginTokens()', function () {
-        context('when there are no "email" devices', function () {
-            beforeEach(function () {
-                \WP_Mock::wpFunction('twofa_user_devices', [
-                    'args' => [$this->userId],
-                    'return' => [
-                        [
-                            'mode' => 'sms',
-                        ],
-                        [
-                            'mode' => 'totp',
-                        ],
-                    ],
-                ]);
-            });
+			context('(get_user_by returns false)', function () {
+				beforeEach(function () {
+					allow('get_user_by')->toBeCalled()->andReturn(false);
+				});
 
-            it('does nothing', function () {
-                $this->emailLogin->sendLoginTokens($this->userId);
-            });
-        });
+				it('does not call wp_mail', function () {
+					allow('update_user_meta')->toBeCalled();
+					expect('update_user_meta')->toBeCalled()->once()->with(
+						$this->userId,
+						'2fa_email_temporary_token',
+						$this->token
+					);
+					expect('update_user_meta')->toBeCalled()->once()->with(
+						$this->userId,
+						'2fa_email_temporary_token_time',
+						$this->now
+					);
+					expect('wp_mail')->not->toBeCalled();
 
-        context('when there is one "email" device', function () {
-            beforeEach(function () {
-                \WP_Mock::wpFunction('twofa_user_devices', [
-                    'args' => [$this->userId],
-                    'return' => [
-                        [
-                            'mode' => 'sms',
-                        ],
-                        [
-                            'mode' => 'email',
-                        ],
-                    ],
-                ]);
-            });
+					$this->emailLogin->sendLoginTokens($this->userId);
+				});
+			});
 
-            context('(get_user_by returns false)', function () {
-                beforeEach(function () {
-                    \WP_Mock::wpFunction('get_user_by', [
-                        'args' => ['ID', $this->userId],
-                        'return' => false,
-                    ]);
-                });
+			context('(get_user_by returns user)', function () {
+				beforeEach(function () {
+					allow('get_user_by')->toBeCalled()->andReturn((object) [
+						'data' => (object) [
+							'user_email' => $this->userEmail,
+						],
+					]);
+				});
 
-                it('does not call wp_mail', function () {
-                    \WP_Mock::wpFunction('update_user_meta', [
-                        'args' => [
-                            $this->userId,
-                            '2fa_email_temporary_token',
-                            $this->token,
-                        ],
-                        'times' => 1,
-                    ]);
-                    \WP_Mock::wpFunction('update_user_meta', [
-                        'args' => [
-                            $this->userId,
-                            '2fa_email_temporary_token_time',
-                            $this->now,
-                        ],
-                        'times' => 1,
-                    ]);
+				it('sends an email', function () {
+					allow('update_user_meta')->toBeCalled();
+					expect('update_user_meta')->toBeCalled()->once()->with(
+						$this->userId,
+						'2fa_email_temporary_token',
+						$this->token
+					);
+					expect('update_user_meta')->toBeCalled()->once()->with(
+						$this->userId,
+						'2fa_email_temporary_token_time',
+						$this->now
+					);
+					allow('wp_mail')->toBeCalled()->andReturn(true);
+					expect('wp_mail')->toBeCalled()->once()->with(
+						$this->userEmail,
+						'2FA',
+						'Verification code: '.$this->token
+					);
 
-                    \WP_Mock::wpFunction('wp_mail', [
-                        'times' => 0,
-                    ]);
-
-                    $this->emailLogin->sendLoginTokens($this->userId);
-                });
-            });
-
-            context('(get_user_by returns user)', function () {
-                beforeEach(function () {
-                    \WP_Mock::wpFunction('get_user_by', [
-                        'args' => ['ID', $this->userId],
-                        'return' => (object) [
-                            'data' => (object) [
-                                'user_email' => $this->userEmail,
-                            ],
-                        ],
-                    ]);
-                });
-
-                it('sends an email', function () {
-                    \WP_Mock::wpFunction('update_user_meta', [
-                        'args' => [
-                            $this->userId,
-                            '2fa_email_temporary_token',
-                            $this->token,
-                        ],
-                        'times' => 1,
-                    ]);
-                    \WP_Mock::wpFunction('update_user_meta', [
-                        'args' => [
-                            $this->userId,
-                            '2fa_email_temporary_token_time',
-                            $this->now,
-                        ],
-                        'times' => 1,
-                    ]);
-
-                    \WP_Mock::wpFunction('wp_mail', [
-                        'args' => [
-                            $this->userEmail,
-                            '2FA',
-                            'Verification code: '.$this->token,
-                        ],
-                        'times' => 1,
-                        'return' => true,
-                    ]);
-
-                    $this->emailLogin->sendLoginTokens($this->userId);
-                });
-            });
-        });
-    });
+					$this->emailLogin->sendLoginTokens($this->userId);
+				});
+			});
+		});
+	});
 });

@@ -1,79 +1,59 @@
 <?php
 
 describe(\Dxw\TwoFa\Tokens::class, function () {
-    beforeEach(function () {
-        \WP_Mock::setUp();
+	beforeEach(function () {
+		$this->tokens = new \Dxw\TwoFa\Tokens();
+		$this->namespace = 'tricorder';
+		$this->token = '123123';
+		$this->wrongToken = '999999';
+		$this->now = 1476969672;
+		$this->expiry = 2 * 60;
+		$this->userId = 3;
 
-        $this->tokens = new \Dxw\TwoFa\Tokens();
-        $this->namespace = 'tricorder';
-        $this->token = '123123';
-        $this->wrongToken = '999999';
-        $this->now = 1476969672;
-        $this->expiry = 2*60;
-        $this->userId = 3;
+		allow('time')->toBeCalled()->andReturn($this->now);
+	});
 
-        \phpmock\mockery\PHPMockery::mock('\\Dxw\\TwoFa', 'time')->andReturn($this->now);
+	describe('->tokenIsValid()', function () {
+		context('when token is expired', function () {
+			beforeEach(function () {
+				allow('get_user_meta')->toBeCalled()->andReturn($this->now - ($this->expiry + 1));
+			});
 
-        \WP_Mock::wpFunction('get_user_meta', [
-            'args' => [$this->userId, '2fa_'.$this->namespace.'_temporary_token', true],
-            'return' => $this->token,
-        ]);
-    });
+			it('returns false', function () {
+				$result = $this->tokens->isValid($this->namespace, $this->userId, $this->token);
+				expect($result)->toBe(false);
+			});
+		});
 
-    afterEach(function () {
-        \WP_Mock::tearDown();
-    });
+		context('when token is current', function () {
+			beforeEach(function () {
+				allow('get_user_meta')->toBeCalled()->andReturn($this->now - $this->expiry, $this->token);
+			});
 
-    describe('->tokenIsValid()', function () {
-        context('when token is expired', function () {
-            beforeEach(function () {
-                \WP_Mock::wpFunction('get_user_meta', [
-                    'args' => [$this->userId, '2fa_'.$this->namespace.'_temporary_token_time', true],
-                    'return' => $this->now - ($this->expiry + 1),
-                ]);
-            });
+			context('and invalid', function () {
+				it('returns false', function () {
+					$result = $this->tokens->isValid($this->namespace, $this->userId, $this->wrongToken);
+					expect($result)->toBe(false);
+				});
+			});
 
-            it('returns false', function () {
-                $result = $this->tokens->isValid($this->namespace, $this->userId, $this->token);
-                expect($result)->to->equal(false);
-            });
-        });
+			context('and valid', function () {
+				it('returns true', function () {
+					$result = $this->tokens->isValid($this->namespace, $this->userId, $this->token);
+					expect($result)->toBe(true);
+				});
+			});
+		});
 
-        context('when token is current', function () {
-            beforeEach(function () {
-                \WP_Mock::wpFunction('get_user_meta', [
-                    'args' => [$this->userId, '2fa_'.$this->namespace.'_temporary_token_time', true],
-                    'return' => $this->now - $this->expiry,
-                ]);
-            });
+		context('when token is not an int', function () {
+			beforeEach(function () {
+				allow('get_user_meta')->toBeCalled()->andReturn('hello');
+			});
 
-            context('and invalid', function () {
-                it('returns false', function () {
-                    $result = $this->tokens->isValid($this->namespace, $this->userId, $this->wrongToken);
-                    expect($result)->to->equal(false);
-                });
-            });
-
-            context('and valid', function () {
-                it('returns true', function () {
-                    $result = $this->tokens->isValid($this->namespace, $this->userId, $this->token);
-                    expect($result)->to->equal(true);
-                });
-            });
-        });
-
-        context('when token is not an int', function () {
-            beforeEach(function () {
-                \WP_Mock::wpFunction('get_user_meta', [
-                    'args' => [$this->userId, '2fa_'.$this->namespace.'_temporary_token_time', true],
-                    'return' => 'hello',
-                ]);
-            });
-
-            it('does something', function () {
-                $result = $this->tokens->isValid($this->namespace, $this->userId, $this->token);
-                expect($result)->to->equal(false);
-            });
-        });
-    });
+			it('does something', function () {
+				$result = $this->tokens->isValid($this->namespace, $this->userId, $this->token);
+				expect($result)->toBe(false);
+			});
+		});
+	});
 });

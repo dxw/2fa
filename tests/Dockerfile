@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 RUN apt-get update &&\
     DEBIAN_FRONTEND=noninteractive apt-get install -y ruby php php-mysql bundler zlib1g-dev mysql-client wget curl php-curl git php-zip ruby-dev make gcc &&\
