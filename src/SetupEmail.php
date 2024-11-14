@@ -4,6 +4,8 @@ namespace Dxw\TwoFa;
 
 class SetupEmail implements \Dxw\Iguana\Registerable
 {
+	private $post;
+
 	public function __construct(\Dxw\Iguana\Value\Post $__post)
 	{
 		$this->post = $__post;
