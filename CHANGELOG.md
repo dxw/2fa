@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update twilio dependency
-
+- Update twilio dependency code in plugin
 
 ## [v2.0.0] - 2024-11-14
 

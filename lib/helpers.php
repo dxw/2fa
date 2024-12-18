@@ -250,19 +250,21 @@ function twofa_send_sms($number, $body)
 	}
 
 	try {
-		$client = new Services_Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+		$client = new Twilio\Rest\Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
 		// To avoid leaking user phone numbers to the log, we mask all but the last two digits.
 		$number_len = strlen($number);
 		$masked_number = $number_len > 2 ? substr_replace($number, str_repeat('X', $number_len - 2), 0, $number_len - 2) : $number;
 		trigger_error(sprintf('About to send SMS from %s to %s', TWILIO_NUMBER, $masked_number), E_USER_WARNING);
 
-		$client->account->messages->create([
-			'To' => $number,
-			'From' => TWILIO_NUMBER,
-			'Body' => $body,
-		]);
-	} catch (Services_Twilio_RestException $e) {
+		$client->account->messages->create(
+			$number,
+			[
+				'from' => TWILIO_NUMBER,
+				'body' => $body,
+			]
+		);
+	} catch (\Twilio\Exceptions\RestException $e) {
 		// Log the error
 		trigger_error('Twilio SMS error: '.$e, E_USER_WARNING);
 
