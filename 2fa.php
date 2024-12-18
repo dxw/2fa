@@ -1,4 +1,5 @@
 <?php
+
 /*
 Plugin Name: 2FA
 Description: Enables 2 factor authentication
