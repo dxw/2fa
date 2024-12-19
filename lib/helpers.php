@@ -245,8 +245,14 @@ function twofa_add_device($user_id, $device_spec)
 // Returns null on success, the error which occurred on failure
 function twofa_send_sms($number, $body)
 {
-	if (!defined('TWILIO_ACCOUNT_SID') || !defined('TWILIO_AUTH_TOKEN') || !defined('TWILIO_NUMBER')) {
-		return 'bad configuration';
+	if (!defined('TWILIO_ACCOUNT_SID')) {
+		return 'TWILIO_ACCOUNT_SID is not defined';
+	}
+	if (!defined('TWILIO_ACCOUNT_SID')) {
+		return 'TWILIO_AUTH_TOKEN is not defined';
+	}
+	if (!defined('TWILIO_NUMBER')) {
+		return 'TWILIO_NUMBER is not defined';
 	}
 
 	try {
