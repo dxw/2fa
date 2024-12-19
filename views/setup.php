@@ -57,7 +57,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
               </div>
             </div>
           </li>
-          <?php if (!defined('TWILIO_DISABLED')): ?>
+          <?php if (!defined('2FA_SMS_DISABLED')): ?>
           <li>
             <label>
               <input type="radio" name="2fa_setup_device" value="sms" ng-model="$root.mode">
