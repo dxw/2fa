@@ -57,6 +57,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
               </div>
             </div>
           </li>
+          <?php if (!defined('TWILIO_DISABLED')): ?>
           <li>
             <label>
               <input type="radio" name="2fa_setup_device" value="sms" ng-model="$root.mode">
@@ -67,6 +68,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
               <p>Give your mobile a name that you can later use to identify it: <input type="text" ng-model="$root.device_name"></p>
             </div>
           </li>
+          <?php endif; ?>
           <li>
             <label>
               <input type="radio" name="2fa_setup_device" value="email" ng-model="$root.mode">
