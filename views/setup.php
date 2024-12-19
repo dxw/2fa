@@ -38,6 +38,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
         <p>What kind of device are you using?</p>
 
         <ul>
+        <?php if (!defined('2FA_SMART_DEVICE_DISABLED')): ?>
           <li>
             <div>
               <label>
@@ -57,6 +58,7 @@ if (!twofa_user_enabled(get_current_user_id())) {
               </div>
             </div>
           </li>
+          <?php endif; ?>
           <?php if (!defined('2FA_SMS_DISABLED')): ?>
           <li>
             <label>

@@ -16,7 +16,7 @@ You can find those [here](https://www.twilio.com/user/account/voice-sms-mms/gett
 
 To disable 2FA options from being selectable, add constants as follows:
 * `2FA_SMS_DISABLED` to disable SMS (for example if no Twilio account is setup)
-
+* `2FA_SMART_DEVICE_DISABLED` to disable smartphone or tablet option
 
 ## Usage
 
