@@ -14,7 +14,9 @@ To enable SMS authentication add these constants to your wp-config.php:
 
 You can find those [here](https://www.twilio.com/user/account/voice-sms-mms/getting-started).
 
-If there is no Twilio account setup for SMS authentication or it needs to be disabled, add a constant `TWILIO_DISABLED`
+To disable 2FA options from being selectable, add constants as follows:
+* `2FA_SMS_DISABLED` to disable SMS (for example if no Twilio account is setup)
+* `2FA_SMART_DEVICE_DISABLED` to disable smartphone or tablet option
 
 ## Usage
 

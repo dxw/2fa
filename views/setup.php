@@ -35,9 +35,10 @@ if (!twofa_user_enabled(get_current_user_id())) {
       <?php # STEP 1?>
 
       <div ng-switch-when="start" class="step">
-        <p>What kind of device are you using?</p>
+        <p>What kind of device or 2FA option are you using?</p>
 
         <ul>
+        <?php if (!defined('2FA_SMART_DEVICE_DISABLED')): ?>
           <li>
             <div>
               <label>
@@ -57,7 +58,8 @@ if (!twofa_user_enabled(get_current_user_id())) {
               </div>
             </div>
           </li>
-          <?php if (!defined('TWILIO_DISABLED')): ?>
+          <?php endif; ?>
+          <?php if (!defined('2FA_SMS_DISABLED')): ?>
           <li>
             <label>
               <input type="radio" name="2fa_setup_device" value="sms" ng-model="$root.mode">
@@ -72,7 +74,11 @@ if (!twofa_user_enabled(get_current_user_id())) {
           <li>
             <label>
               <input type="radio" name="2fa_setup_device" value="email" ng-model="$root.mode">
-              I don't have a phone I can use at work.
+              <?php if (defined('2FA_SMART_DEVICE_DISABLED') && defined('2FA_SMS_DISABLED')) : ?>
+                email
+              <?php else: ?>
+                I don't have a phone I can use at work.
+              <?php endif; ?>
             </label>
             <div ng-show="$root.mode === 'email'">
               <p>The activation code email will be sent to this email address: <strong><?php echo esc_html(wp_get_current_user()->user_email) ?></strong></p>
