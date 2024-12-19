@@ -6,8 +6,6 @@ WordPress plugin for 2 factor authentication (TOTP and SMS)
 
 At the moment this plugin must be installed on a multisite installation.
 
-If you don't have a Twilio account, there's currently no way to hide SMS from the setup page.
-
 To enable SMS authentication add these constants to your wp-config.php:
 
     define('TWILIO_ACCOUNT_SID', 'AC...');
@@ -15,6 +13,8 @@ To enable SMS authentication add these constants to your wp-config.php:
     define('TWILIO_NUMBER', '...');
 
 You can find those [here](https://www.twilio.com/user/account/voice-sms-mms/getting-started).
+
+If there is no Twilio account setup for SMS authentication or it needs to be disabled, add a constant `TWILIO_DISABLED`
 
 ## Usage
 
