@@ -3,7 +3,7 @@
 // Gets the filtered value of the redirect_to parameter (string)
 // Taken from wp-login.php
 $get_redirect_to = function ($user) {
-	if (isset($_REQUEST['redirect_to'])) {
+	if (isset($_REQUEST['redirect_to']) && is_string($_REQUEST['redirect_to'])) {
 		$redirect_to = $_REQUEST['redirect_to'];
 		// // Redirect to https if user wants ssl
 		// if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') ) { //
@@ -13,7 +13,7 @@ $get_redirect_to = function ($user) {
 		$redirect_to = admin_url();
 	}
 
-	$requested_redirect_to = isset($_REQUEST['redirect_to']) ? $_REQUEST['redirect_to'] : '';
+	$requested_redirect_to = (isset($_REQUEST['redirect_to']) && is_string($_REQUEST['redirect_to'])) ? $_REQUEST['redirect_to'] : '';
 	return apply_filters('login_redirect', $redirect_to, $requested_redirect_to, $user);
 };
 
