@@ -163,7 +163,7 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
 	// Phase 1
 
-	if (isset($_POST['log']) && isset($_POST['pwd'])) {
+	if (isset($_POST['log']) && is_string($_POST['log']) && isset($_POST['pwd']) && is_string($_POST['pwd'])) {
 		// Verify credentials
 		$user = wp_authenticate($_POST['log'], $_POST['pwd']);
 
@@ -191,7 +191,9 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
 	// Phase 2
 
-	if (isset($_POST['token']) && isset($_POST['user_id']) && isset($_POST['nonce'])) {
+	if (isset($_POST['token']) && is_string($_POST['token']) &&
+		isset($_POST['user_id']) && is_string($_POST['user_id']) &&
+		isset($_POST['nonce']) && is_string($_POST['nonce'])) {
 		$user_id = absint($_POST['user_id']);
 
 		if ($user_id <= 0) {
@@ -201,7 +203,8 @@ add_action('login_form_login', function () use ($redirect, $render) {
 
 		if (twofa_bruteforce_login_show_captcha($user_id)) {
 			$recaptcha = new \ReCaptcha\ReCaptcha(RECAPTCHA_PRIVATE_KEY);
-			$resp = $recaptcha->verify(stripslashes($_POST['g-recaptcha-response']), $_SERVER['REMOTE_ADDR']);
+			$g_recaptcha_response = (isset($_POST['g-recaptcha-response']) && is_string($_POST['g-recaptcha-response'])) ? $_POST['g-recaptcha-response'] : '';
+			$resp = $recaptcha->verify(stripslashes($g_recaptcha_response), $_SERVER['REMOTE_ADDR']);
 			if (!$resp->isSuccess()) {
 				$errors->add('invalid_captcha', __('Invalid CAPTCHA. Try again.'));
 				$render(2, $errors, null, $user_id);
