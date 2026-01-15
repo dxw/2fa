@@ -4,9 +4,9 @@
 Plugin Name: 2FA
 Description: Enables 2 factor authentication
 Author: dxw
-Author URI: http://dxw.com
+Author URI: https://www.dxw.com
 Network: true
-Version: 2.0.3
+Version: 2.0.4
 */
 
 $registrar = require __DIR__.'/src/load.php';
