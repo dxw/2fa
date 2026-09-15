@@ -9,7 +9,7 @@ jobs:
       matrix:
         php-versions: ['8.3']
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -35,7 +35,7 @@ jobs:
       matrix:
         php-versions: ['8.3']
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -58,7 +58,7 @@ jobs:
   integration_tests:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Run tests
         run: |
           tests/run-with-docker.sh
