@@ -4,10 +4,10 @@ on: push
 
 jobs:
   kahlan:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-versions: ['8.3']
+        php-versions: ['8.3', '8.5']
     steps:
       - uses: actions/checkout@v7
       - name: Setup PHP
@@ -30,10 +30,10 @@ jobs:
       - name: Run Kahlan tests
         run: vendor/bin/kahlan spec
   php-cs-fixer:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-versions: ['8.3']
+        php-versions: ['8.3', '8.5']
     steps:
       - uses: actions/checkout@v7
       - name: Setup PHP
@@ -56,7 +56,7 @@ jobs:
       - name: PHP CS fix
         run: vendor/bin/php-cs-fixer fix --dry-run -v --diff
   integration_tests:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - name: Run tests
