@@ -119,8 +119,9 @@ $render = function ($phase, $errors, $rememberme, $user_id) use ($get_redirect_t
 
             <?php if (twofa_bruteforce_login_show_captcha($user_id)) : ?>
                 <div class="g-recaptcha" data-sitekey="<?php echo esc_attr(RECAPTCHA_PUBLIC_KEY) ?>"></div>
-                <script type="text/javascript" src="https://www.google.com/recaptcha/api.js?hl=en"></script>
-            <?php endif ?>
+            <?php
+				wp_print_script_tag(['id' => 'googleRecaptcha', 'src' => esc_url('https://www.google.com/recaptcha/api.js?hl=en')]);
+            endif ?>
 
             <?php do_action('2fa_login_form_second_factor') ?>
             <p class="submit">
